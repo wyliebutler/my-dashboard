@@ -15,4 +15,5 @@ yarn-debug.log*
 # --- OS Files ---
 # Ignores common Mac and Windows system files
 .DS_Store
+.env
 Thumbs.db
