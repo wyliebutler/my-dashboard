@@ -25,4 +25,4 @@ A self-hosted, full-stack dashboard application with a Node.js backend and a pur
     ```
 6.  The dashboard will be available at `http://<your-server-ip>:4446`.
 
-7.  Use the EXPORT and IMPORT function to make a backup of your cards.
+7.  Use the EXPORT and IMPORT function to make a backup of your cards. Especially useful for testing the app.
