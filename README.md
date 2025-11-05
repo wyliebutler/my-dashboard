@@ -7,7 +7,7 @@ A self-hosted, full-stack dashboard application with a Node.js backend and a pur
 1.  Ensure Docker and Docker Compose are installed.
 2.  Clone this repository:
     ```bash
-    git clone [https://github.com/wyliebutler/my-dashboard.git](https://github.com/wyliebutler/my-dashboard.git)
+    git clone https://github.com/wyliebutler/my-dashboard.git
     cd my-dashboard
     ```
 3.  Create your own secret `.env` file. You can copy the template:
