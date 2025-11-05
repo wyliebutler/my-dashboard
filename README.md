@@ -24,3 +24,5 @@ A self-hosted, full-stack dashboard application with a Node.js backend and a pur
     docker-compose up -d --build
     ```
 6.  The dashboard will be available at `http://<your-server-ip>:4446`.
+
+7.  Use the EXPORT and IMPORT function to make a backup of your cards.
