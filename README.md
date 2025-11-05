@@ -27,7 +27,7 @@ A self-hosted, full-stack dashboard application with a Node.js backend and a pur
 
 7.  Use the EXPORT and IMPORT function to make a backup of your cards. Especially useful for testing the app.
 
-If you want to create tiles for your windos apps you can use this work-a-round.  Here are the steps.
+If you want to create tiles for your windows apps you can use this work-a-round.  Here are the steps.
 
 1.  Create a folder to hold your launcher.bat file you will create.  The file contents will look like this:
 *******************************************
