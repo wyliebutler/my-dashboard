@@ -1,0 +1,29 @@
+services:
+  # 1. The Frontend Service (Nginx + HTML)
+  frontend:
+    build: ./frontend
+    container_name: dashboard_frontend
+    ports:
+      - "4446:80"
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  # 2. The Backend Service (Node.js API)
+  backend:
+    build: ./backend
+    container_name: dashboard_backend
+    restart: unless-stopped
+    volumes:
+      # This uses a managed Docker volume named 'appdata'
+      - appdata:/app/data
+    env_file: ./.env
+    environment:
+      # The variable will be pulled from the .env file
+      - JWT_SECRET
+      
+# This defines the managed volume. Docker will create and
+# manage this for you.
+volumes:
+  appdata:
+    driver: local

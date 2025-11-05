@@ -1,0 +1,50 @@
+My Self-Hosted Dashboard
+
+This project is a fully self-contained, authenticated dashboard application. It runs as two services in Docker containers:
+Frontend: An Nginx server for the HTML/CSS/JS interface.
+Backend: A Node.js/Express API that handles user accounts and data storage.
+Database: A persistent SQLite database file.
+
+Project Structure
+Your directory should look like this:
+my-dashboard-app/
+¦
++-- docker-compose.yml     # The main file to run the application
+¦
++-- frontend/              # All frontend files
+¦   +-- Dockerfile
+¦   +-- nginx.conf
+¦   +-- index.html
+¦   +-- .env.sample
++-- backend/               # All backend API files
+¦   +-- Dockerfile
+¦   +-- package.json
+¦   +-- database.js
+¦   +-- server.js
+¦
++-- data/                  # This folder will store your persistent database
+    (initially empty)
+How to Run
+Prerequisites:
+Docker
+Docker Compose
+
+Running the Application:
+Open a terminal and navigate to the root of your my-dashboard-app directory (the one containing docker-compose.yml).
+
+Build and run the containers:
+Run the following command. The --build flag tells Docker Compose to build your images from scratch based on your Dockerfiles.
+
+docker-compose up --build
+You can add -d to run it in "detached" mode (in the background): docker-compose up -d --build
+Wait for it to build. The first time you run this, it will download the Node and Nginx images and install the Node.js packages. This might take a minute or two.
+
+Access your app!
+Once the build is complete and the containers are running, your application is live.
+Open a web browser and go to your server's IP address on port 4446: For example, http://0.0.0.0:4446  NOTE: Your real IP.
+
+Create your first account. The first thing you'll see is the login page. Click "Sign Up" to create your first user account. This account and all your tiles will be saved locally in the data/dashboard.db file on your server.
+
+Stopping the Application:
+If you're running it in the foreground, press Ctrl+C in your terminal.
+If you're running in detached mode, run: docker-compose down
