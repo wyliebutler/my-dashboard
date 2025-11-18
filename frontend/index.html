@@ -62,8 +62,8 @@
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
-            width: 2rem; /* w-8 */
-            height: 2rem; /* h-8 */
+            width: 4rem; /* w-16 */
+            height: 4rem; /* h-16 */
             padding: 0;
             border: none;
             border-radius: 0.5rem; /* rounded-lg */
@@ -93,20 +93,52 @@
         /* --- NEW RULES FOR PRETTY SCROLLBARS --- */
         /* This targets the scrollable areas in your modals */
         #icon-picker-grid::-webkit-scrollbar,
-        #group-manage-list::-webkit-scrollbar {
+        #group-manage-list::-webkit-scrollbar,
+        #bg-image-grid::-webkit-scrollbar {
             @apply w-2;
         }
         #icon-picker-grid::-webkit-scrollbar-track,
-        #group-manage-list::-webkit-scrollbar-track {
+        #group-manage-list::-webkit-scrollbar-track,
+        #bg-image-grid::-webkit-scrollbar-track {
             @apply bg-gray-200 dark:bg-gray-700 rounded-lg;
         }
         #icon-picker-grid::-webkit-scrollbar-thumb,
-        #group-manage-list::-webkit-scrollbar-thumb {
+        #group-manage-list::-webkit-scrollbar-thumb,
+        #bg-image-grid::-webkit-scrollbar-thumb {
             @apply bg-gray-400 dark:bg-gray-500 rounded-lg;
         }
         #icon-picker-grid::-webkit-scrollbar-thumb:hover,
-        #group-manage-list::-webkit-scrollbar-thumb:hover {
+        #group-manage-list::-webkit-scrollbar-thumb:hover,
+        #bg-image-grid::-webkit-scrollbar-thumb:hover {
             @apply bg-gray-500 dark:bg-gray-400;
+        }
+        
+        /* --- NEW: Background Modal --- */
+        .bg-tab {
+            @apply py-2 px-4 font-medium text-gray-500 dark:text-gray-400 cursor-pointer border-b-2 border-transparent;
+        }
+        .bg-tab.active {
+            @apply text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400;
+        }
+        
+        .bg-tab-content {
+            @apply hidden;
+        }
+        .bg-tab-content.active {
+            @apply block;
+        }
+        
+        .bg-image-item {
+            @apply relative rounded-lg overflow-hidden cursor-pointer border-2 border-transparent transition-all;
+        }
+        .bg-image-item.active {
+            @apply border-blue-500 ring-2 ring-blue-500;
+        }
+        .bg-image-item img {
+            @apply w-full h-24 object-cover;
+        }
+        .bg-image-item .delete-bg-btn {
+            @apply absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity;
         }
     </style>
 </head>
@@ -132,11 +164,10 @@
                     </label>
                     <i class="fa-solid fa-moon text-gray-400"></i>
                 </div>
-
-                <div class="flex items-center">
-                    <label for="bg-color-picker" class="sr-only">Background Color</label>
-                    <input type="color" id="bg-color-picker" title="Change background color" value="#e5e7eb"> </div>
-
+                
+                <button id="manage-bg-btn" title="Manage Background" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold py-2 px-3 rounded-lg">
+                    <i class="fa-solid fa-image"></i>
+                </button>
                 <span id="welcome-user" class="hidden md:block whitespace-nowrap"></span>
                 <button id="add-tile-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2">
                     <i class="fa-solid fa-plus"></i>
@@ -174,7 +205,7 @@
         </nav>
 
 
-        <main id="main-content" class="flex-1 p-4 md:p-8 bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+        <main id="main-content" class="flex-1 p-4 md:p-8 transition-colors duration-300">
             
             <div id="auth-screen" class="max-w-md mx-auto mt-10 md:mt-20">
                 <div class="bg-white dark:bg-gray-800 shadow-2xl rounded-lg p-8">
@@ -301,6 +332,46 @@
         </div>
     </div>
     
+    <div id="bg-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 shadow-2xl rounded-lg p-6 w-full max-w-lg">
+            <h2 class="text-2xl font-bold mb-4">Manage Background</h2>
+            
+            <div class="flex border-b border-gray-300 dark:border-gray-700 mb-4">
+                <button id="bg-tab-color" class="bg-tab active" data-tab="color">Color</button>
+                <button id="bg-tab-image" class="bg-tab" data-tab="image">Images</button>
+            </div>
+            
+            <div id="bg-tab-content-color" class="bg-tab-content active">
+                <p class="text-gray-600 dark:text-gray-300 mb-4">Select a solid background color.</p>
+                <div class="flex items-center space-x-4">
+                    <input type="color" id="bg-color-picker" title="Change background color">
+                    <button id="bg-clear-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
+                        Reset to Default
+                    </button>
+                </div>
+            </div>
+            
+            <div id="bg-tab-content-image" class="bg-tab-content">
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-gray-600 dark:text-gray-300">Select an uploaded image.</p>
+                    <label class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">
+                        <i class="fa-solid fa-upload"></i> Upload
+                        <input type="file" id="bg-upload-input" accept="image/jpeg,image/png" class="hidden">
+                    </label>
+                </div>
+                <div id="bg-image-grid" class="grid grid-cols-3 md:grid-cols-4 gap-4 max-h-64 overflow-y-auto pr-2">
+                    </div>
+                <p id="bg-image-error" class="text-red-500 dark:text-red-400 text-center mt-4 hidden"></p>
+            </div>
+            
+            <div class="flex justify-end mt-6">
+                <button id="bg-modal-close-btn" type="button" class="bg-gray-500 hover:bg-gray-600 text-white dark:bg-gray-600 dark:hover:bg-gray-700 font-bold py-2 px-6 rounded-lg">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white py-3 px-6 rounded-lg shadow-lg opacity-0 transform translate-y-3 transition-all duration-300 z-[70]">
         <span id="toast-message">Success!</span>
     </div>
@@ -373,7 +444,7 @@
             const groupTabBar = $('#group-tab-bar');
             const tileContainer = $('#tile-container');
             const welcomeUser = $('#welcome-user');
-            const mainContent = $('#main-content'); // Added for bg color
+            const mainContent = $('#main-content'); // Main background element
             
             // Auth
             const authForm = $('#auth-form');
@@ -389,7 +460,6 @@
             const logoutBtn = $('#logout-btn');
             const addTileBtn = $('#add-tile-btn');
             const themeToggle = $('#theme-toggle');
-            const bgColorPicker = $('#bg-color-picker'); // Added for bg color
             const exportBtn = $('#export-btn');
             const importBtn = $('#import-btn');
             const importFileInput = $('#import-file-input');
@@ -427,6 +497,20 @@
             const groupManageList = $('#group-manage-list');
             const groupModalCloseBtn = $('#group-modal-close-btn');
             
+            // --- NEW: Background Modal Selectors ---
+            const manageBgBtn = $('#manage-bg-btn');
+            const bgModal = $('#bg-modal');
+            const bgModalCloseBtn = $('#bg-modal-close-btn');
+            const bgColorPicker = $('#bg-color-picker');
+            const bgClearBtn = $('#bg-clear-btn');
+            const bgTabColor = $('#bg-tab-color');
+            const bgTabImage = $('#bg-tab-image');
+            const bgTabContentColor = $('#bg-tab-content-color');
+            const bgTabContentImage = $('#bg-tab-content-image');
+            const bgUploadInput = $('#bg-upload-input');
+            const bgImageGrid = $('#bg-image-grid');
+            const bgImageError = $('#bg-image-error');
+            
             // Search
             const searchInput = $('#search-input');
             const mobileSearchInput = $('#mobile-search-input');
@@ -448,12 +532,17 @@
                 options.headers = {
                     ...options.headers,
                     'Authorization': `Bearer ${appState.currentToken}`,
-                    'Content-Type': 'application/json'
                 };
                 
-                if (options.body) {
+                // --- MODIFIED: Handle FormData for file uploads ---
+                if (options.body instanceof FormData) {
+                    // Let the browser set the Content-Type header
+                    // with the correct boundary for multipart/form-data
+                } else if (options.body) {
                     options.body = JSON.stringify(options.body);
+                    options.headers['Content-Type'] = 'application/json';
                 }
+                // --- END MODIFICATION ---
                 
                 const resp = await fetch(endpoint, options);
                 
@@ -1063,6 +1152,8 @@
                 
                 // Reset background color to theme default on logout screen
                 mainContent.style.backgroundColor = '';
+                mainContent.style.backgroundImage = 'none';
+                mainContent.classList.add('bg-gray-100', 'dark:bg-gray-900');
             }
 
             /**
@@ -1071,13 +1162,15 @@
             async function checkTokenOnLoad() {
                 // Apply theme and color *before* checking token
                 initThemeToggle();
-                initBgColor(); 
+                initBackground(); // <-- MODIFIED: Renamed from initBgColor
                 
                 const token = localStorage.getItem('dashboard-token');
                 if (!token) {
                     authScreen.classList.remove('hidden'); // Show login
                     // Set default bg color for login screen
                     mainContent.style.backgroundColor = '';
+                    mainContent.style.backgroundImage = 'none';
+                    mainContent.classList.add('bg-gray-100', 'dark:bg-gray-900');
                     return;
                 }
                 
@@ -1099,6 +1192,8 @@
                     authScreen.classList.remove('hidden'); // Show login
                     // Set default bg color for login screen
                     mainContent.style.backgroundColor = '';
+                    mainContent.style.backgroundImage = 'none';
+                    mainContent.classList.add('bg-gray-100', 'dark:bg-gray-900');
                 }
             }
             
@@ -1371,12 +1466,9 @@
                     document.documentElement.classList.remove('dark');
                     localStorage.theme = 'light';
                 }
-                // When theme toggles, check if a custom color is set. If not, reset.
-                const color = localStorage.getItem('dashboard-bgcolor');
-                if (!color) {
-                    mainContent.style.backgroundColor = ''; 
-                    bgColorPicker.value = isDark ? '#111827' : '#f3f4f6';
-                }
+                
+                // When theme toggles, re-apply background to get default colors
+                initBackground();
             }
             
             function initThemeToggle() {
@@ -1387,21 +1479,169 @@
                 }
             }
 
-            // --- NEW: BACKGROUND COLOR ---
-            function handleBgColorChange(e) {
+            // --- NEW: BACKGROUND MANAGEMENT ---
+            
+            function handleSetColorBg(e) {
                 const color = e.target.value;
-                mainContent.style.backgroundColor = color;
-                localStorage.setItem('dashboard-bgcolor', color);
+                localStorage.setItem('dashboard-bg-type', 'color');
+                localStorage.setItem('dashboard-bg-value', color);
+                initBackground();
+            }
+            
+            function handleSetImageBg(filename) {
+                localStorage.setItem('dashboard-bg-type', 'image');
+                localStorage.setItem('dashboard-bg-value', filename);
+                initBackground();
+                renderBgImageGrid(); // Re-render grid to show active state
+            }
+            
+            function handleClearBg() {
+                localStorage.removeItem('dashboard-bg-type');
+                localStorage.removeItem('dashboard-bg-value');
+                initBackground();
+                renderBgImageGrid(); // Re-render grid to remove active state
             }
 
-            function initBgColor() {
-                const color = localStorage.getItem('dashboard-bgcolor');
-                if (color) {
-                    mainContent.style.backgroundColor = color;
-                    bgColorPicker.value = color;
+            function initBackground() {
+                const bgType = localStorage.getItem('dashboard-bg-type');
+                const bgValue = localStorage.getItem('dashboard-bg-value');
+                
+                // Remove default theme colors first
+                mainContent.classList.remove('bg-gray-100', 'dark:bg-gray-900');
+
+                if (bgType === 'image' && bgValue) {
+                    mainContent.style.backgroundImage = `url('/api/backgrounds/${bgValue}')`;
+                    mainContent.style.backgroundSize = 'cover';
+                    mainContent.style.backgroundPosition = 'center';
+                    mainContent.style.backgroundAttachment = 'fixed';
+                    mainContent.style.backgroundColor = ''; // Clear color
+                    bgColorPicker.value = '#ffffff'; // Reset picker
+                } else if (bgType === 'color' && bgValue) {
+                    mainContent.style.backgroundColor = bgValue;
+                    mainContent.style.backgroundImage = 'none';
+                    bgColorPicker.value = bgValue;
                 } else {
-                    // Set picker to default theme color
+                    // Default
+                    mainContent.style.backgroundColor = '';
+                    mainContent.style.backgroundImage = 'none';
+                    mainContent.classList.add('bg-gray-100', 'dark:bg-gray-900'); // Add default colors
                     bgColorPicker.value = document.documentElement.classList.contains('dark') ? '#111827' : '#f3f4f6';
+                }
+            }
+            
+            function showBgModal() {
+                bgImageError.classList.add('hidden');
+                // Set default tab
+                switchBgTab('color');
+                // Load images into grid
+                renderBgImageGrid();
+                bgModal.classList.remove('hidden');
+            }
+            
+            function hideBgModal() {
+                bgModal.classList.add('hidden');
+            }
+            
+            function switchBgTab(tabName) {
+                if (tabName === 'color') {
+                    bgTabColor.classList.add('active');
+                    bgTabImage.classList.remove('active');
+                    bgTabContentColor.classList.add('active');
+                    bgTabContentImage.classList.remove('active');
+                } else {
+                    bgTabColor.classList.remove('active');
+                    bgTabImage.classList.add('active');
+                    bgTabContentColor.classList.remove('active');
+                    bgTabContentImage.classList.add('active');
+                }
+            }
+            
+            async function renderBgImageGrid() {
+                try {
+                    const imageFiles = await apiFetch('/api/backgrounds');
+                    bgImageGrid.innerHTML = ''; // Clear old grid
+                    
+                    if (imageFiles.length === 0) {
+                        bgImageGrid.innerHTML = '<p class="text-gray-500 dark:text-gray-400 col-span-full text-center">No images uploaded.</p>';
+                        return;
+                    }
+                    
+                    const activeBgType = localStorage.getItem('dashboard-bg-type');
+                    const activeBgValue = localStorage.getItem('dashboard-bg-value');
+                    
+                    imageFiles.forEach(filename => {
+                        const item = document.createElement('div');
+                        item.className = 'bg-image-item group';
+                        if (activeBgType === 'image' && activeBgValue === filename) {
+                            item.classList.add('active');
+                        }
+                        
+                        item.innerHTML = `
+                            <img src="/api/backgrounds/${filename}" alt="Background">
+                            <button class="delete-bg-btn" data-filename="${filename}">
+                                <i class="fa-solid fa-trash fa-xs"></i>
+                            </button>
+                        `;
+                        
+                        // Click on image to set as background
+                        item.addEventListener('click', (e) => {
+                            if (!e.target.closest('.delete-bg-btn')) {
+                                handleSetImageBg(filename);
+                            }
+                        });
+                        
+                        // Click on delete button
+                        item.querySelector('.delete-bg-btn').addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            if (window.confirm('Are you sure you want to delete this image?')) {
+                                try {
+                                    await apiFetch(`/api/backgrounds/${filename}`, { method: 'DELETE' });
+                                    showToast('Image deleted');
+                                    // If this was the active image, clear background
+                                    if (activeBgType === 'image' && activeBgValue === filename) {
+                                        handleClearBg();
+                                    }
+                                    renderBgImageGrid(); // Refresh grid
+                                } catch (err) {
+                                    showToast(err.message, true);
+                                }
+                            }
+                        });
+                        
+                        bgImageGrid.appendChild(item);
+                    });
+                    
+                } catch (err) {
+                    bgImageError.textContent = 'Could not load images. ' + err.message;
+                    bgImageError.classList.remove('hidden');
+                }
+            }
+            
+            async function handleUploadImage(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                bgImageError.classList.add('hidden');
+                
+                const formData = new FormData();
+                formData.append('backgroundFile', file);
+                
+                try {
+                    const data = await apiFetch('/api/backgrounds/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    showToast('Image uploaded!');
+                    handleSetImageBg(data.filename); // Set new image as active
+                    renderBgImageGrid(); // Refresh grid
+                    
+                } catch (err) {
+                    bgImageError.textContent = 'Upload failed. ' + err.message;
+                    bgImageError.classList.remove('hidden');
+                } finally {
+                    // Clear file input to allow re-uploading same file
+                    bgUploadInput.value = null;
                 }
             }
 
@@ -1625,7 +1865,6 @@
             authForm.addEventListener('submit', handleAuthSubmit);
             logoutBtn.addEventListener('click', handleLogout);
             themeToggle.addEventListener('change', handleThemeToggle);
-            bgColorPicker.addEventListener('input', handleBgColorChange); // Added for bg color
             exportBtn.addEventListener('click', handleExport);
             importBtn.addEventListener('click', () => importFileInput.click()); // Trigger hidden file input
             importFileInput.addEventListener('change', handleImport);
@@ -1658,9 +1897,22 @@
             // --- EVENT LISTENERS (SEARCH) ---
             searchInput.addEventListener('input', handleSearch);
             mobileSearchInput.addEventListener('input', handleSearch);
+            
+            // --- NEW: EVENT LISTENERS (BACKGROUND MODAL) ---
+            manageBgBtn.addEventListener('click', showBgModal);
+            bgModalCloseBtn.addEventListener('click', hideBgModal);
+            bgModal.addEventListener('click', (e) => {
+                if (e.target === bgModal) hideBgModal();
+            });
+            bgTabColor.addEventListener('click', () => switchBgTab('color'));
+            bgTabImage.addEventListener('click', () => switchBgTab('image'));
+            bgColorPicker.addEventListener('input', handleSetColorBg); // 'input' for live preview
+            bgClearBtn.addEventListener('click', handleClearBg);
+            bgUploadInput.addEventListener('change', handleUploadImage);
+            
 
             // --- INITIALIZATION ---
-            checkTokenOnLoad(); // This now calls initThemeToggle and initBgColor
+            checkTokenOnLoad(); // This now calls initThemeToggle and initBackground
         });
     </script>
 </body>
