@@ -12,7 +12,7 @@ A self-hosted, full-stack dashboard application with a Node.js backend and a pur
     ```
 3.  Create your own secret `.env` file. You can copy the template:
     ```bash
-    cp .env.example .env
+    cp .env.sample .env
     ```
 4.  Edit the `.env` file and add your own unique secret:
     ```bash
@@ -21,7 +21,7 @@ A self-hosted, full-stack dashboard application with a Node.js backend and a pur
     ```
 5.  Run the application. Docker will automatically create the database volume.
     ```bash
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
 6.  The dashboard will be available at `http://<your-server-ip>:4446`.
 
