@@ -8,6 +8,7 @@ const tilesRouter = require('./routes/tiles.js');
 const groupsRouter = require('./routes/groups.js');
 const backupRouter = require('./routes/backup.js');
 const backgroundsRouter = require('./routes/backgrounds.js');
+const healthRouter = require('./routes/health.js');
 
 const app = express();
 const port = 3000;
@@ -27,6 +28,7 @@ app.use('/api/tiles', tilesRouter);
 app.use('/api/groups', groupsRouter);
 app.use('/api/backup', backupRouter);
 app.use('/api/backgrounds', backgroundsRouter);
+app.use('/api/health', healthRouter);
 
 // Start Server
 async function startServer() {

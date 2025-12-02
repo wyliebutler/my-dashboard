@@ -116,3 +116,10 @@ body { -ms-overflow-style: none; scrollbar-width: none; }
 .bg-image-item .delete-bg-btn {
     @apply absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity;
 }
+
+/* --- STATUS INDICATORS --- */
+.status-indicator { position: absolute; top: 8px; left: 8px; width: 12px; height: 12px; border-radius: 50%; z-index: 10; box-shadow: 0 0 4px rgba(0,0,0,0.3); }
+.status-loading { background-color: #fbbf24; animation: pulse 1.5s infinite; }
+.status-up { background-color: #22c55e; }
+.status-down { background-color: #ef4444; }
+@keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }

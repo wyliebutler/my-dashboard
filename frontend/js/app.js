@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportBtn = $('#export-btn');
     const importBtn = $('#import-btn');
     const importFileInput = $('#import-file-input');
+    const heartbeatBtn = $('#heartbeat-btn'); // NEW
 
     // Group Tab Bar
     const groupTabList = $('#group-tab-list');
@@ -348,9 +349,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- THIS IS THE UPDATED LINE ---
         // We removed 'border border-orange-500 border-2'
         // We added a subtle default border and a blue hover border
-        tileEl.className = `tile-item group ${colorClasses} p-3 rounded-lg shadow-lg flex flex-col items-center justify-between transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer border border-black/10 dark:border-white/10 hover:border-blue-500 dark:hover:border-blue-400 h-36 w-36`;
+        tileEl.className = `tile-item group ${colorClasses} p-3 rounded-lg shadow-lg flex flex-col items-center justify-between transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer border border-black/10 dark:border-white/10 hover:border-blue-500 dark:hover:border-blue-400 h-36 w-36 relative`;
 
-        tileEl.innerHTML = `
+        // Status Indicator (Hidden by default)
+        const statusDot = document.createElement('div');
+        statusDot.className = 'status-indicator hidden';
+        tileEl.appendChild(statusDot);
+
+        tileEl.innerHTML += `
             <i class="${tile.icon} text-3xl sm:text-4xl text-gray-600 dark:text-gray-300 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors"></i>
             <span class="h-10 text-xs sm:text-sm text-center font-medium text-gray-700 dark:text-gray-200 group-hover:text-black dark:group-hover:text-white transition-colors break-words w-full flex items-center justify-center">${tile.name}</span>
         `;
@@ -1237,6 +1243,77 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- HEARTBEAT / HEALTH CHECK ---
+
+    async function handleHeartbeat() {
+        const tiles = document.querySelectorAll('.tile-item');
+        if (tiles.length === 0) return;
+
+        showToast('Checking service health...', false);
+
+        // Process in parallel
+        tiles.forEach(tile => {
+            checkTileHealth(tile);
+        });
+    }
+
+    async function checkTileHealth(tileEl) {
+        const url = tileEl.dataset.url;
+        // Ignore non-http links (e.g., launch://, file://)
+        if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+            return;
+        }
+
+        const statusDot = tileEl.querySelector('.status-indicator');
+        if (!statusDot) return;
+
+        // 1. Show loading state
+        statusDot.className = 'status-indicator status-loading';
+        statusDot.classList.remove('hidden');
+
+        try {
+            // A. Try Backend Check first (Avoids CORS issues for public sites)
+            const resp = await apiFetch('/api/health/check', {
+                method: 'POST',
+                body: { url }
+            });
+
+            if (resp.status === 'up') {
+                statusDot.className = 'status-indicator status-up';
+                return;
+            }
+
+            // B. If Backend reports "down", try Client-side Check
+            // This handles private IPs/VPNs (like Tailscale) that the backend can't reach
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                // mode: 'no-cors' allows us to send a request to any origin.
+                // We won't see the status code (it returns 'opaque'), but if it resolves,
+                // it means the server is reachable. If it rejects, it's a network error.
+                await fetch(url, {
+                    method: 'GET',
+                    mode: 'no-cors',
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                // If we get here, the browser reached the server
+                statusDot.className = 'status-indicator status-up';
+
+            } catch (clientErr) {
+                // Both checks failed
+                console.warn(`Client-side check failed for ${url}:`, clientErr);
+                statusDot.className = 'status-indicator status-down';
+            }
+
+        } catch (err) {
+            console.error(`Health check failed for ${url}:`, err);
+            statusDot.className = 'status-indicator status-down';
+        }
+    }
+
     async function handleUploadImage(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -1488,6 +1565,13 @@ document.addEventListener('DOMContentLoaded', () => {
     exportBtn.addEventListener('click', handleExport);
     importBtn.addEventListener('click', () => importFileInput.click()); // Trigger hidden file input
     importFileInput.addEventListener('change', handleImport);
+    importBtn.addEventListener('click', () => importFileInput.click()); // Trigger hidden file input
+    importFileInput.addEventListener('change', handleImport);
+    if (heartbeatBtn) {
+        heartbeatBtn.addEventListener('click', handleHeartbeat); // NEW
+    } else {
+        console.warn('Heartbeat button not found in DOM');
+    }
 
     // --- EVENT LISTENERS (TILE MODAL) ---
     addTileBtn.addEventListener('click', () => showTileModal());

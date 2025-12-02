@@ -38,8 +38,20 @@ The codebase has been refactored for modularity:
 
 ### Backend (`/backend`)
 -   `server.js`: The main entry point that initializes the database and mounts routes.
--   `routes/`: Separate files for each API feature (`auth.js`, `dashboard.js`, `tiles.js`, etc.).
+-   `routes/`: Separate files for each API feature (`auth.js`, `dashboard.js`, `tiles.js`, `health.js`, etc.).
 -   `middleware/`: Reusable middleware (e.g., `authMiddleware.js`).
+
+## Features
+
+### Heartbeat (Service Health Check)
+Click the **Heartbeat icon** (pulse) in the header to check the status of your services.
+-   **Green Dot**: Service is reachable (UP).
+-   **Red Dot**: Service is unreachable (DOWN).
+-   **Yellow Dot**: Checking...
+
+**Note on Private IPs (e.g., Tailscale/Localhost):**
+The dashboard uses a "Smart Fallback" system. It first tries to check the URL from the backend server. If that fails (e.g., the server can't reach your private laptop), it tries to check directly from your browser.
+*   **SSL Warning**: If your private service uses a self-signed certificate, the browser may block the background check. You must visit the URL manually once and "Accept/Trust" the certificate for the red dot to turn green.
 
 ## Development
 
