@@ -10,7 +10,10 @@ FROM nginx:1.25-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy the built static site (our index.html)
-COPY index.html /usr/share/nginx/html/index.html
+# Copy the built static site
+COPY index.html /usr/share/nginx/html/
+COPY css /usr/share/nginx/html/css
+COPY js /usr/share/nginx/html/js
 
 # Expose port 80
 EXPOSE 80

@@ -29,6 +29,8 @@ COPY --from=builder /app/node_modules ./node_modules
 # This prevents a local node_modules folder from overwriting
 # the one we just installed in the container.
 COPY server.js database.js ./
+COPY routes ./routes
+COPY middleware ./middleware
 
 # Expose port 3000
 EXPOSE 3000

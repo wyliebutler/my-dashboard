@@ -1,0 +1,118 @@
+/* Hide scrollbar for clean look */
+::-webkit-scrollbar { width: 0; background: transparent; }
+body { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Drag-and-drop styles */
+.sortable-ghost {
+    opacity: 0.4;
+    @apply bg-gray-300 dark:bg-gray-700;
+}
+.sortable-drag {
+    opacity: 1;
+}
+
+/* Style for when dragging a tile over a group tab */
+.group-tab.sortable-ghost {
+    @apply bg-blue-600 text-white;
+}
+
+/* Style for the group management list items */
+.group-list-item {
+     @apply flex items-center justify-between p-3 bg-gray-200 dark:bg-gray-700 rounded-lg mb-2;
+}
+.group-list-item .drag-handle {
+    @apply cursor-move text-gray-500 dark:text-gray-400 mr-3;
+}
+
+/* Custom styles for theme toggle switch */
+.toggle-checkbox:checked {
+    @apply: bg-blue-600;
+    right: 0;
+}
+.toggle-checkbox:checked + .toggle-label {
+    @apply: bg-blue-600;
+}
+
+/* Style for the new color picker */
+#bg-color-picker {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 4rem; /* w-16 */
+    height: 4rem; /* h-16 */
+    padding: 0;
+    border: none;
+    border-radius: 0.5rem; /* rounded-lg */
+    cursor: pointer;
+    background-color: transparent;
+    /* Add a subtle border to make it visible */
+    @apply border border-gray-300 dark:border-gray-600;
+}
+#bg-color-picker::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border-radius: 0.5rem;
+}
+#bg-color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: 0.5rem;
+}
+#bg-color-picker::-moz-color-swatch {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+/* --- NEW RULE FOR GROUP HEADERS IN "ALL" VIEW --- */
+.group-header {
+    @apply text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200 border-b-2 border-gray-400 dark:border-gray-600 pb-3;
+}
+
+/* --- NEW RULES FOR PRETTY SCROLLBARS --- */
+/* This targets the scrollable areas in your modals */
+#icon-picker-grid::-webkit-scrollbar,
+#group-manage-list::-webkit-scrollbar,
+#bg-image-grid::-webkit-scrollbar {
+    @apply w-2;
+}
+#icon-picker-grid::-webkit-scrollbar-track,
+#group-manage-list::-webkit-scrollbar-track,
+#bg-image-grid::-webkit-scrollbar-track {
+    @apply bg-gray-200 dark:bg-gray-700 rounded-lg;
+}
+#icon-picker-grid::-webkit-scrollbar-thumb,
+#group-manage-list::-webkit-scrollbar-thumb,
+#bg-image-grid::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 dark:bg-gray-500 rounded-lg;
+}
+#icon-picker-grid::-webkit-scrollbar-thumb:hover,
+#group-manage-list::-webkit-scrollbar-thumb:hover,
+#bg-image-grid::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500 dark:bg-gray-400;
+}
+
+/* --- NEW: Background Modal --- */
+.bg-tab {
+    @apply py-2 px-4 font-medium text-gray-500 dark:text-gray-400 cursor-pointer border-b-2 border-transparent;
+}
+.bg-tab.active {
+    @apply text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400;
+}
+
+.bg-tab-content {
+    @apply hidden;
+}
+.bg-tab-content.active {
+    @apply block;
+}
+
+.bg-image-item {
+    @apply relative rounded-lg overflow-hidden cursor-pointer border-2 border-transparent transition-all;
+}
+.bg-image-item.active {
+    @apply border-blue-500 ring-2 ring-blue-500;
+}
+.bg-image-item img {
+    @apply w-full h-24 object-cover;
+}
+.bg-image-item .delete-bg-btn {
+    @apply absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity;
+}
