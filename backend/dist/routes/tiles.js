@@ -41,7 +41,7 @@ router.put('/:id(\\d+)', authMiddleware_1.default, (req, res) => {
         return res.status(400).json({ message: 'Name, URL, and Icon are required' });
     }
     (0, database_1.dbRun)('UPDATE tiles SET name = ?, url = ?, icon = ?, groupId = ? WHERE id = ? AND userId = ?', [name, url, icon, groupId, id, userId])
-        .then((result) => {
+        .then(() => {
         // Note: dbRun wrapper might not return changes if not explicitly handled, 
         // but let's assume it does or we just return success.
         // If we need strict checking, we'd need to verify the wrapper return type.
@@ -78,7 +78,6 @@ router.put('/order', authMiddleware_1.default, (req, res) => {
         db.run('BEGIN TRANSACTION');
         const groupFilter = (groupId === null || groupId === undefined) ? 'groupId IS NULL' : 'groupId = ?';
         const stmt = db.prepare(`UPDATE tiles SET position = ? WHERE id = ? AND userId = ? AND ${groupFilter}`);
-        const params = (groupId === null || groupId === undefined) ? [userId] : [userId, groupId];
         let errorOccurred = false;
         orderedIds.forEach((id, index) => {
             if (groupId === null || groupId === undefined) {

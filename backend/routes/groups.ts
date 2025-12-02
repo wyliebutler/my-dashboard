@@ -1,7 +1,7 @@
 import express, { Response } from 'express';
 import { getDb, dbRun } from '../database';
 import authenticateToken from '../middleware/authMiddleware';
-import { AuthRequest } from '../types';
+import { AuthRequest, DatabaseRunResult } from '../types';
 
 const router = express.Router();
 
@@ -13,10 +13,10 @@ router.post('/', authenticateToken, (req: AuthRequest, res: Response) => {
     if (!name) return res.status(400).json({ message: 'Group name is required' });
 
     const db = getDb();
-    db.get('SELECT MAX(position) as maxPos FROM groups WHERE userId = ?', [userId], (err: Error | null, row: any) => {
+    db.get('SELECT MAX(position) as maxPos FROM groups WHERE userId = ?', [userId], (err: Error | null, row: { maxPos: number }) => {
         if (err) return res.status(500).json({ message: 'Error calculating position', error: err.message });
         const newPosition = (row.maxPos === null ? 0 : row.maxPos) + 1;
-        db.run('INSERT INTO groups (userId, name, position) VALUES (?, ?, ?)', [userId, name, newPosition], function (this: any, err: Error | null) {
+        db.run('INSERT INTO groups (userId, name, position) VALUES (?, ?, ?)', [userId, name, newPosition], function (this: DatabaseRunResult, err: Error | null) {
             if (err) return res.status(500).json({ message: 'Error creating group', error: err.message });
             res.status(201).json({ id: this.lastID, name, position: newPosition });
         });
@@ -84,7 +84,7 @@ router.delete('/:id', authenticateToken, (req: AuthRequest, res: Response) => {
                 db.run('ROLLBACK');
                 return res.status(500).json({ message: 'Error uncategorizing tiles', error: err.message });
             }
-            db.run('DELETE FROM groups WHERE id = ? AND userId = ?', [id, userId], function (this: any, err: Error | null) {
+            db.run('DELETE FROM groups WHERE id = ? AND userId = ?', [id, userId], function (this: DatabaseRunResult, err: Error | null) {
                 if (err) {
                     db.run('ROLLBACK');
                     return res.status(500).json({ message: 'Error deleting group', error: err.message });

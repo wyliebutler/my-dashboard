@@ -1,7 +1,7 @@
 import express, { Response } from 'express';
 import { getDb } from '../database';
 import authenticateToken from '../middleware/authMiddleware';
-import { AuthRequest } from '../types';
+import { AuthRequest, Group, Tile } from '../types';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.get('/', authenticateToken, (req: AuthRequest, res: Response) => {
     if (!req.user) return res.sendStatus(401);
     const db = getDb();
     const userId = req.user.id;
-    const dashboardData: { username: string, groups: any[], tiles: any[] } = {
+    const dashboardData: { username: string, groups: Group[], tiles: Tile[] } = {
         username: req.user.username,
         groups: [],
         tiles: []
@@ -17,11 +17,11 @@ router.get('/', authenticateToken, (req: AuthRequest, res: Response) => {
 
     db.all('SELECT * FROM groups WHERE userId = ? ORDER BY position ASC', [userId], (err, groups) => {
         if (err) return res.status(500).json({ message: 'Error fetching groups', error: err.message });
-        dashboardData.groups = groups;
+        dashboardData.groups = groups as Group[];
 
         db.all('SELECT * FROM tiles WHERE userId = ? ORDER BY position ASC', [userId], (err, tiles) => {
             if (err) return res.status(500).json({ message: 'Error fetching tiles', error: err.message });
-            dashboardData.tiles = tiles;
+            dashboardData.tiles = tiles as Tile[];
             res.json(dashboardData);
         });
     });

@@ -1,7 +1,7 @@
 import express, { Response } from 'express';
 import { getDb, dbRun } from '../database';
 import authenticateToken from '../middleware/authMiddleware';
-import { AuthRequest } from '../types';
+import { AuthRequest, DatabaseRunResult } from '../types';
 
 const router = express.Router();
 
@@ -19,14 +19,14 @@ router.post('/', authenticateToken, (req: AuthRequest, res: Response) => {
     const groupFilter = (groupId === null || groupId === undefined) ? 'groupId IS NULL' : 'groupId = ?';
     const groupParams = (groupId === null || groupId === undefined) ? [userId] : [userId, groupId];
 
-    db.get(`SELECT MAX(position) as maxPos FROM tiles WHERE userId = ? AND ${groupFilter}`, groupParams, (err: Error | null, row: any) => {
+    db.get(`SELECT MAX(position) as maxPos FROM tiles WHERE userId = ? AND ${groupFilter}`, groupParams, (err: Error | null, row: { maxPos: number }) => {
         if (err) return res.status(500).json({ message: 'Error calculating position', error: err.message });
 
         const newPosition = (row.maxPos === null ? 0 : row.maxPos) + 1;
 
         db.run('INSERT INTO tiles (userId, name, url, icon, groupId, position) VALUES (?, ?, ?, ?, ?, ?)',
             [userId, name, url, icon, groupId, newPosition],
-            function (this: any, err: Error | null) {
+            function (this: DatabaseRunResult, err: Error | null) {
                 if (err) return res.status(500).json({ message: 'Error creating tile', error: err.message });
                 res.status(201).json({ id: this.lastID, name, url, icon, groupId, position: newPosition });
             }
@@ -46,7 +46,7 @@ router.put('/:id(\\d+)', authenticateToken, (req: AuthRequest, res: Response) =>
     }
 
     dbRun('UPDATE tiles SET name = ?, url = ?, icon = ?, groupId = ? WHERE id = ? AND userId = ?', [name, url, icon, groupId, id, userId])
-        .then((result: any) => {
+        .then(() => {
             // Note: dbRun wrapper might not return changes if not explicitly handled, 
             // but let's assume it does or we just return success.
             // If we need strict checking, we'd need to verify the wrapper return type.
@@ -86,7 +86,7 @@ router.put('/order', authenticateToken, (req: AuthRequest, res: Response) => {
         const groupFilter = (groupId === null || groupId === undefined) ? 'groupId IS NULL' : 'groupId = ?';
         const stmt = db.prepare(`UPDATE tiles SET position = ? WHERE id = ? AND userId = ? AND ${groupFilter}`);
 
-        const params = (groupId === null || groupId === undefined) ? [userId] : [userId, groupId];
+
 
         let errorOccurred = false;
         orderedIds.forEach((id, index) => {

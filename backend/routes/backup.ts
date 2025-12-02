@@ -1,7 +1,7 @@
 import express, { Response } from 'express';
 import { getDb } from '../database';
 import authenticateToken from '../middleware/authMiddleware';
-import { AuthRequest } from '../types';
+import { AuthRequest, Group, Tile, DatabaseRunResult } from '../types';
 
 const router = express.Router();
 
@@ -10,18 +10,18 @@ router.get('/export', authenticateToken, (req: AuthRequest, res: Response) => {
     if (!req.user) return res.sendStatus(401);
     const userId = req.user.id;
     const db = getDb();
-    let backupData: { groups: any[], tiles: any[] } = {
+    const backupData: { groups: Group[], tiles: Tile[] } = {
         groups: [],
         tiles: []
     };
 
     db.all('SELECT * FROM groups WHERE userId = ?', [userId], (err, groups) => {
         if (err) return res.status(500).json({ message: 'Error fetching groups for export', error: err.message });
-        backupData.groups = groups;
+        backupData.groups = groups as Group[];
 
         db.all('SELECT * FROM tiles WHERE userId = ?', [userId], (err, tiles) => {
             if (err) return res.status(500).json({ message: 'Error fetching tiles for export', error: err.message });
-            backupData.tiles = tiles;
+            backupData.tiles = tiles as Tile[];
 
             // Send the backup data as a JSON response
             res.json(backupData);
@@ -63,7 +63,7 @@ router.post('/import', authenticateToken, (req: AuthRequest, res: Response) => {
         // 2. Insert groups and map old IDs to new IDs
         const groupStmt = db.prepare('INSERT INTO groups (userId, name, position) VALUES (?, ?, ?)');
         groups.forEach(group => {
-            groupStmt.run(userId, group.name, group.position, function (this: any, err: Error | null) {
+            groupStmt.run(userId, group.name, group.position, function (this: DatabaseRunResult, err: Error | null) {
                 if (err) {
                     console.error('Error inserting group:', err);
                     // We can't easily roll back from inside a forEach, so we'll rely on the finalize check

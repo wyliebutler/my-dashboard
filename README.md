@@ -48,19 +48,6 @@ The codebase has been refactored for modularity:
 Click the **Heartbeat icon** (pulse) in the header to check the status of your services.
 -   **Green Dot**: Service is reachable (UP).
 -   **Red Dot**: Service is unreachable (DOWN).
--   **Yellow Dot**: Checking...
-
-**Note on Private IPs (e.g., Tailscale/Localhost):**
-The dashboard uses a "Smart Fallback" system. It first tries to check the URL from the backend server. If that fails (e.g., the server can't reach your private laptop), it tries to check directly from your browser.
-*   **SSL Warning**: If your private service uses a self-signed certificate, the browser may block the background check. You must visit the URL manually once and "Accept/Trust" the certificate for the red dot to turn green.
-
-## Development
-
-To work on the project:
-1.  **Frontend**: Edit files in `frontend/`. Note that `styles.css` is dynamically injected in `index.html` to work with the Tailwind CDN.
-2.  **Backend**: Add new routes in `backend/routes/` (`.ts` files) and mount them in `server.ts`.
-    -   Run `npm run dev` in `backend/` for local development with `ts-node`.
-    -   Run `npm run build` to compile TypeScript to JavaScript (output in `dist/`).
 3.  **Rebuild**: After making changes, rebuild the containers:
     ```bash
     docker-compose up -d --build

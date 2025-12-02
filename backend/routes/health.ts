@@ -68,9 +68,9 @@ router.post('/check', authenticateToken, async (req: Request, res: Response) => 
             res.json({ status: 'down', code: response.status });
         }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         // Only network errors or timeouts end up here
-        res.json({ status: 'down', error: err.message });
+        res.json({ status: 'down', error: (err as Error).message });
     }
 });
 

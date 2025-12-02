@@ -18,12 +18,12 @@ router.post('/signup', async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         await dbRun('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
         res.status(201).json({ message: 'User created' });
-    } catch (err: any) {
-        if (err.code === 'SQLITE_CONSTRAINT') {
+    } catch (err: unknown) {
+        if ((err as any).code === 'SQLITE_CONSTRAINT') {
             return res.status(409).json({ message: 'Username already taken' });
         }
         console.error('Signup Error:', err);
-        res.status(500).json({ message: 'Error creating user', error: err.message });
+        res.status(500).json({ message: 'Error creating user', error: (err as Error).message });
     }
 });
 
@@ -35,7 +35,7 @@ router.post('/login', (req: Request, res: Response) => {
     }
 
     const db = getDb();
-    db.get('SELECT * FROM users WHERE username = ?', [username], async (err: Error | null, user: any) => {
+    db.get('SELECT * FROM users WHERE username = ?', [username], async (err: Error | null, user: User) => {
         if (err) {
             console.error('Login DB Error:', err);
             return res.status(500).json({ message: 'Error logging in', error: err.message });
@@ -44,6 +44,9 @@ router.post('/login', (req: Request, res: Response) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
+        if (!user.password) {
+            return res.status(500).json({ message: 'User data corrupted' });
+        }
         const match = await bcrypt.compare(password, user.password);
         if (match) {
             const tokenUser: User = { id: user.id, username: user.username };

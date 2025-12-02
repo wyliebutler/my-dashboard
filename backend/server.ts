@@ -42,8 +42,8 @@ async function startServer() {
       console.log(`Backend server running on http://localhost:${port}`);
     });
 
-  } catch (err: any) {
-    console.error('Failed to initialize database:', err.message);
+  } catch (err: unknown) {
+    console.error('Failed to initialize database:', (err as Error).message);
     process.exit(1); // Exit if DB fails
   }
 }

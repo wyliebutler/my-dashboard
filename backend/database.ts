@@ -5,7 +5,7 @@ const DB_PATH = '/app/data/dashboard.db';
 let db: sqlite3.Database;
 
 // Promisified version of db.run
-export function dbRun(sql: string, params: any[] = []): Promise<void> {
+export function dbRun(sql: string, params: (string | number | boolean | null)[] = []): Promise<void> {
   // Ensure db is initialized
   if (!db) {
     return Promise.reject(new Error("Database not initialized. Call initDb() first."));

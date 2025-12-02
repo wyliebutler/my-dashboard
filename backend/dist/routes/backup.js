@@ -13,7 +13,7 @@ router.get('/export', authMiddleware_1.default, (req, res) => {
         return res.sendStatus(401);
     const userId = req.user.id;
     const db = (0, database_1.getDb)();
-    let backupData = {
+    const backupData = {
         groups: [],
         tiles: []
     };

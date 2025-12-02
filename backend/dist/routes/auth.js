@@ -44,6 +44,9 @@ router.post('/login', (req, res) => {
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
+        if (!user.password) {
+            return res.status(500).json({ message: 'User data corrupted' });
+        }
         const match = await bcrypt_1.default.compare(password, user.password);
         if (match) {
             const tokenUser = { id: user.id, username: user.username };
