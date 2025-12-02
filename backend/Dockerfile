@@ -9,8 +9,14 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Install app dependencies
-RUN npm install --only=production
+# Install all dependencies (including devDependencies for tsc)
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Build TypeScript code
+RUN npm run build
 
 # -----------------------------------------------------------------
 # Stage 2: Create the final production image
@@ -19,21 +25,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy the installed node_modules from the 'builder' stage
-COPY --from=builder /app/node_modules ./node_modules
+# Copy package files
+COPY package.json package-lock.json* ./
 
-#
-# --- THIS IS THE CRITICAL FIX ---
-#
-# We are now copying *only* the files we need.
-# This prevents a local node_modules folder from overwriting
-# the one we just installed in the container.
-COPY server.js database.js ./
-COPY routes ./routes
-COPY middleware ./middleware
+# Install only production dependencies
+RUN npm install --only=production
+
+# Copy built assets from builder stage
+COPY --from=builder /app/dist ./dist
 
 # Expose port 3000
 EXPOSE 3000
 
 # Command to run the app
-CMD ["node", "server.js"]
+CMD ["node", "dist/server.js"]

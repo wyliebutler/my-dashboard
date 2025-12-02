@@ -1,6 +1,6 @@
 import { appState } from './state.js';
 import * as API from './api.js';
-import { renderAll, renderTiles, renderGroupTabs, renderGroupManageList, showToast, fetchDashboardData } from './ui.js';
+import { UI, renderAll, renderTiles, renderGroupTabs, renderGroupManageList, showToast, fetchDashboardData } from './ui.js';
 
 // SortableJS instances
 let groupTabSortable = null;
@@ -66,7 +66,7 @@ export function initializeSortables() {
         }
     });
 
-    const tileContainer = document.getElementById('tile-container');
+    const tileContainer = UI.tileContainer;
 
     if (appState.activeGroupId !== null) {
         tileContainer.id = `grid-${appState.activeGroupId}`;

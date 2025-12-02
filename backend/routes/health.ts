@@ -1,10 +1,10 @@
-const express = require('express');
-const authenticateToken = require('../middleware/authMiddleware.js');
+import express, { Request, Response } from 'express';
+import authenticateToken from '../middleware/authMiddleware';
 
 const router = express.Router();
 
 // Check URL Health
-router.post('/check', authenticateToken, async (req, res) => {
+router.post('/check', authenticateToken, async (req: Request, res: Response) => {
     const { url } = req.body;
 
     if (!url) {
@@ -68,10 +68,10 @@ router.post('/check', authenticateToken, async (req, res) => {
             res.json({ status: 'down', code: response.status });
         }
 
-    } catch (err) {
+    } catch (err: any) {
         // Only network errors or timeouts end up here
         res.json({ status: 'down', error: err.message });
     }
 });
 
-module.exports = router;
+export default router;

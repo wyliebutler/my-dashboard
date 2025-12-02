@@ -1,13 +1,15 @@
-const express = require('express');
-const { getDb } = require('../database.js');
-const authenticateToken = require('../middleware/authMiddleware.js');
+import express, { Response } from 'express';
+import { getDb } from '../database';
+import authenticateToken from '../middleware/authMiddleware';
+import { AuthRequest } from '../types';
 
 const router = express.Router();
 
-router.get('/', authenticateToken, (req, res) => {
+router.get('/', authenticateToken, (req: AuthRequest, res: Response) => {
+    if (!req.user) return res.sendStatus(401);
     const db = getDb();
     const userId = req.user.id;
-    const dashboardData = {
+    const dashboardData: { username: string, groups: any[], tiles: any[] } = {
         username: req.user.username,
         groups: [],
         tiles: []
@@ -25,4 +27,4 @@ router.get('/', authenticateToken, (req, res) => {
     });
 });
 
-module.exports = router;
+export default router;

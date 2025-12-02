@@ -1,14 +1,14 @@
-const express = require('express');
-const path = require('path');
-const { initDb } = require('./database.js');
+import express from 'express';
+import path from 'path';
+import { initDb } from './database';
 
-const authRouter = require('./routes/auth.js');
-const dashboardRouter = require('./routes/dashboard.js');
-const tilesRouter = require('./routes/tiles.js');
-const groupsRouter = require('./routes/groups.js');
-const backupRouter = require('./routes/backup.js');
-const backgroundsRouter = require('./routes/backgrounds.js');
-const healthRouter = require('./routes/health.js');
+import authRouter from './routes/auth';
+import dashboardRouter from './routes/dashboard';
+import tilesRouter from './routes/tiles';
+import groupsRouter from './routes/groups';
+import backupRouter from './routes/backup';
+import backgroundsRouter from './routes/backgrounds';
+import healthRouter from './routes/health';
 
 const app = express();
 const port = 3000;
@@ -42,7 +42,7 @@ async function startServer() {
       console.log(`Backend server running on http://localhost:${port}`);
     });
 
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to initialize database:', err.message);
     process.exit(1); // Exit if DB fails
   }
@@ -53,4 +53,5 @@ if (require.main === module) {
   startServer();
 }
 
-module.exports = app;
+export default app;
+
