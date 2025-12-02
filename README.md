@@ -1,6 +1,6 @@
 # My Personal Dashboard
 
-A self-hosted, full-stack dashboard application with a Node.js backend and a pure JavaScript frontend, all running in Docker.
+A self-hosted, full-stack dashboard application with a Node.js (TypeScript) backend and a pure JavaScript frontend, all running in Docker.
 
 ## How to Run
 
@@ -37,9 +37,10 @@ The codebase has been refactored for modularity:
 -   `js/app.js`: Contains the application logic (state management, API calls, UI rendering).
 
 ### Backend (`/backend`)
--   `server.js`: The main entry point that initializes the database and mounts routes.
--   `routes/`: Separate files for each API feature (`auth.js`, `dashboard.js`, `tiles.js`, `health.js`, etc.).
--   `middleware/`: Reusable middleware (e.g., `authMiddleware.js`).
+-   `server.ts`: The main entry point (TypeScript).
+-   `routes/`: Separate files for each API feature (`auth.ts`, `dashboard.ts`, `tiles.ts`, `health.ts`, etc.).
+-   `middleware/`: Reusable middleware (e.g., `authMiddleware.ts`).
+-   `types.ts`: Shared TypeScript interfaces.
 
 ## Features
 
@@ -57,7 +58,9 @@ The dashboard uses a "Smart Fallback" system. It first tries to check the URL fr
 
 To work on the project:
 1.  **Frontend**: Edit files in `frontend/`. Note that `styles.css` is dynamically injected in `index.html` to work with the Tailwind CDN.
-2.  **Backend**: Add new routes in `backend/routes/` and mount them in `server.js`.
+2.  **Backend**: Add new routes in `backend/routes/` (`.ts` files) and mount them in `server.ts`.
+    -   Run `npm run dev` in `backend/` for local development with `ts-node`.
+    -   Run `npm run build` to compile TypeScript to JavaScript (output in `dist/`).
 3.  **Rebuild**: After making changes, rebuild the containers:
     ```bash
     docker-compose up -d --build
