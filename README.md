@@ -27,6 +27,30 @@ A self-hosted, full-stack dashboard application with a Node.js backend and a pur
 
 7.  Use the EXPORT and IMPORT function to make a backup of your cards. Especially useful for testing the app.
 
+## Project Structure
+
+The codebase has been refactored for modularity:
+
+### Frontend (`/frontend`)
+-   `index.html`: The main entry point.
+-   `css/styles.css`: Contains all custom styles and Tailwind directives.
+-   `js/app.js`: Contains the application logic (state management, API calls, UI rendering).
+
+### Backend (`/backend`)
+-   `server.js`: The main entry point that initializes the database and mounts routes.
+-   `routes/`: Separate files for each API feature (`auth.js`, `dashboard.js`, `tiles.js`, etc.).
+-   `middleware/`: Reusable middleware (e.g., `authMiddleware.js`).
+
+## Development
+
+To work on the project:
+1.  **Frontend**: Edit files in `frontend/`. Note that `styles.css` is dynamically injected in `index.html` to work with the Tailwind CDN.
+2.  **Backend**: Add new routes in `backend/routes/` and mount them in `server.js`.
+3.  **Rebuild**: After making changes, rebuild the containers:
+    ```bash
+    docker-compose up -d --build
+    ```
+
 If you want to create tiles for your windows apps you can use this work-a-round.  Here are the steps.
 
 1.  Create a folder to hold your launcher.bat file you will create.  The file contents will look like this:
