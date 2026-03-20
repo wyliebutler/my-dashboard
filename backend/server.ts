@@ -16,7 +16,8 @@ const port = 3000;
 // Backgrounds path (duplicated from routes/backgrounds.js to serve static files)
 const UPLOAD_DIR = path.join('/app/data', 'backgrounds');
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Serve static background images
 app.use('/api/backgrounds', express.static(UPLOAD_DIR));

@@ -8,7 +8,7 @@ const router = express.Router();
 // Create Tile
 router.post('/', authenticateToken, (req: AuthRequest, res: Response) => {
     if (!req.user) return res.sendStatus(401);
-    const { name, url, icon, groupId } = req.body;
+    const { name, url, icon, groupId, borderColor, type, widgetData } = req.body;
     const userId = req.user.id;
 
     if (!name || !url || !icon) {
@@ -24,11 +24,11 @@ router.post('/', authenticateToken, (req: AuthRequest, res: Response) => {
 
         const newPosition = (row.maxPos === null ? 0 : row.maxPos) + 1;
 
-        db.run('INSERT INTO tiles (userId, name, url, icon, groupId, position) VALUES (?, ?, ?, ?, ?, ?)',
-            [userId, name, url, icon, groupId, newPosition],
+        db.run('INSERT INTO tiles (userId, name, url, icon, groupId, borderColor, type, widgetData, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [userId, name, url || '', icon, groupId, borderColor || null, type || 'link', widgetData || null, newPosition],
             function (this: DatabaseRunResult, err: Error | null) {
                 if (err) return res.status(500).json({ message: 'Error creating tile', error: err.message });
-                res.status(201).json({ id: this.lastID, name, url, icon, groupId, position: newPosition });
+                res.status(201).json({ id: this.lastID, name, url, icon, groupId, borderColor: borderColor || null, type: type || 'link', widgetData: widgetData || null, position: newPosition });
             }
         );
     });
@@ -38,14 +38,14 @@ router.post('/', authenticateToken, (req: AuthRequest, res: Response) => {
 router.put('/:id(\\d+)', authenticateToken, (req: AuthRequest, res: Response) => {
     if (!req.user) return res.sendStatus(401);
     const { id } = req.params;
-    const { name, url, icon, groupId } = req.body;
+    const { name, url, icon, groupId, borderColor, type, widgetData } = req.body;
     const userId = req.user.id;
 
-    if (!name || !url || !icon) {
+    if (!name || (!url && type !== "weather" && type !== "calendar") || !icon) {
         return res.status(400).json({ message: 'Name, URL, and Icon are required' });
     }
 
-    dbRun('UPDATE tiles SET name = ?, url = ?, icon = ?, groupId = ? WHERE id = ? AND userId = ?', [name, url, icon, groupId, id, userId])
+    dbRun('UPDATE tiles SET name = ?, url = ?, icon = ?, groupId = ?, borderColor = ?, type = ?, widgetData = ? WHERE id = ? AND userId = ?', [name, url || '', icon, groupId, borderColor || null, type || 'link', widgetData || null, id, userId])
         .then(() => {
             // Note: dbRun wrapper might not return changes if not explicitly handled, 
             // but let's assume it does or we just return success.
@@ -53,7 +53,7 @@ router.put('/:id(\\d+)', authenticateToken, (req: AuthRequest, res: Response) =>
             // Assuming the wrapper returns an object with changes property if we used `this.changes` in the promise.
             // If not, we might need to adjust dbRun in database.ts or here.
             // For now, let's assume success.
-            res.json({ message: 'Tile updated successfully', id: Number(id), name, url, icon, groupId });
+            res.json({ message: 'Tile updated successfully', id: Number(id), name, url: url || '', icon, groupId, borderColor: borderColor || null, type: type || 'link', widgetData: widgetData || null });
         })
         .catch(err => res.status(500).json({ message: 'Error updating tile', error: err.message }));
 });

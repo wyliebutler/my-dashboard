@@ -8,7 +8,7 @@ const router = express.Router();
 // Create Group
 router.post('/', authenticateToken, (req: AuthRequest, res: Response) => {
     if (!req.user) return res.sendStatus(401);
-    const { name } = req.body;
+    const { name, borderColor } = req.body;
     const userId = req.user.id;
     if (!name) return res.status(400).json({ message: 'Group name is required' });
 
@@ -16,9 +16,9 @@ router.post('/', authenticateToken, (req: AuthRequest, res: Response) => {
     db.get('SELECT MAX(position) as maxPos FROM groups WHERE userId = ?', [userId], (err: Error | null, row: { maxPos: number }) => {
         if (err) return res.status(500).json({ message: 'Error calculating position', error: err.message });
         const newPosition = (row.maxPos === null ? 0 : row.maxPos) + 1;
-        db.run('INSERT INTO groups (userId, name, position) VALUES (?, ?, ?)', [userId, name, newPosition], function (this: DatabaseRunResult, err: Error | null) {
+        db.run('INSERT INTO groups (userId, name, position, borderColor) VALUES (?, ?, ?, ?)', [userId, name, newPosition, borderColor || null], function (this: DatabaseRunResult, err: Error | null) {
             if (err) return res.status(500).json({ message: 'Error creating group', error: err.message });
-            res.status(201).json({ id: this.lastID, name, position: newPosition });
+            res.status(201).json({ id: this.lastID, name, position: newPosition, borderColor: borderColor || null });
         });
     });
 });
@@ -57,11 +57,11 @@ router.put('/order', authenticateToken, (req: AuthRequest, res: Response) => {
 router.put('/:id', authenticateToken, (req: AuthRequest, res: Response) => {
     if (!req.user) return res.sendStatus(401);
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, borderColor } = req.body;
     const userId = req.user.id;
     if (!name) return res.status(400).json({ message: 'Group name is required' });
 
-    dbRun('UPDATE groups SET name = ? WHERE id = ? AND userId = ?', [name, id, userId])
+    dbRun('UPDATE groups SET name = ?, borderColor = ? WHERE id = ? AND userId = ?', [name, borderColor || null, id, userId])
         .then(() => {
             // Note: dbRun doesn't return changes count easily with current wrapper, 
             // but we can assume success if no error. 

@@ -79,6 +79,11 @@ export async function initDb(): Promise<void> {
 
         // 4. Run a final command. Its callback will run *after* all previous
         //    commands are complete. This is how we know it's safe to resolve.
+        db.run("ALTER TABLE tiles ADD COLUMN borderColor TEXT", () => {});
+        db.run("ALTER TABLE tiles ADD COLUMN type TEXT DEFAULT 'link'", () => {});
+        db.run("ALTER TABLE tiles ADD COLUMN widgetData TEXT", () => {});
+        db.run("ALTER TABLE groups ADD COLUMN borderColor TEXT", () => {});
+
         db.run('PRAGMA user_version = 1', (err) => {
           if (err) {
             console.error('Error finalizing tables:', err.message);
