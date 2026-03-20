@@ -1,5 +1,7 @@
 # My Personal Dashboard
 
+![Dashboard Screenshot](screenshot.png)
+
 A self-hosted, full-stack dashboard application with a Node.js (TypeScript) backend and a pure JavaScript frontend, all running in Docker.
 
 ## How to Run
@@ -38,9 +40,17 @@ The codebase has been refactored for modularity:
 
 ### Backend (`/backend`)
 -   `server.ts`: The main entry point (TypeScript).
+-   `database.ts`: The core SQLite integration interface mapping all the persistent database constraints.
 -   `routes/`: Separate files for each API feature (`auth.ts`, `dashboard.ts`, `tiles.ts`, `health.ts`, etc.).
 -   `middleware/`: Reusable middleware (e.g., `authMiddleware.ts`).
 -   `types.ts`: Shared TypeScript interfaces.
+
+## Features
+
+- **Dynamic Tile Layouts:** Drag and drop tile interfaces with custom groups and persistent border styling.
+- **Top-Tier Widgets:** A permanent unified dashboard header natively supporting an explicit Calendar grid, a To-Do list with local-storage saving, and a multi-day Weather component powered by the Open-Meteo GEM Geocoding network.
+- **Icon Support:** Built-in dashboard icons picker connected to the immense GitHub community icon networks, easily handling massive Base64 payloads natively through the 10MB NGINX backend intercept.
+- **Local Background Gallery:** Native background image saving connected via IndexedDB.
 
 ## Features
 
