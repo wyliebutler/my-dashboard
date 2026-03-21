@@ -755,8 +755,8 @@
                 tileEl.dataset.groupId = tile.groupId;
                 
                 // --- COLOR LOGIC ---
-                let colorClasses = 'bg-white dark:bg-gray-800 hover:brightness-95'; 
-                if (tile.groupId !== null && !tile.borderColor) {
+                let colorClasses = 'bg-white/90 dark:bg-gray-800/50 hover:brightness-95'; 
+                if (tile.groupId !== null) {
                     const groupIndex = appState.groups.findIndex(g => g.id === tile.groupId);
                     if (groupIndex > -1) {
                         const colorIndex = groupIndex % categoryColors.length;
