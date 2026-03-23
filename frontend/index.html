@@ -427,7 +427,8 @@
                 groups: [], // Array of {id, name, position}
                 tiles: [],  // Array of {id, name, url, icon, position, groupId}
                 activeGroupId: null, // null = "ALL"
-                currentToken: null
+                currentToken: null,
+                activeBackgroundId: null
             };
             
             // SortableJS instances
@@ -1544,7 +1545,7 @@
             async function checkTokenOnLoad() {
                 // Apply theme and color *before* checking token
                 initThemeToggle();
-                initBgColor(); 
+                // We will init the background color *after* the token check to sync
                 
                 const token = localStorage.getItem('dashboard-token');
                 if (!token) {
@@ -1564,6 +1565,13 @@
                     
                     const data = await resp.json();
                     appState.currentToken = token;
+                    
+                    // Initialize background with server preferences
+                    initBgColor({
+                        activeBackgroundColor: data.activeBackgroundColor,
+                        activeBackgroundId: data.activeBackgroundId
+                    });
+                    
                     await showDashboard(data.username);
                     
                 } catch (err) {
@@ -1968,7 +1976,7 @@
                 }
             }
 
-            // --- BACKGROUND STYLES & IDB GALLERY ---
+            // --- BACKGROUND STYLES & SERVER GALLERY ---
             const bgGalleryBtn = document.getElementById('bg-gallery-btn');
             const bgGalleryModal = document.getElementById('bg-gallery-modal');
             const bgGalleryCloseBtn = document.getElementById('bg-gallery-close-btn');
@@ -1976,65 +1984,6 @@
             const bgGalleryClearBtn = document.getElementById('bg-gallery-clear-btn');
             const bgGalleryGrid = document.getElementById('bg-gallery-grid');
             const bgFileInput = document.getElementById('bg-file-input');
-
-            // IndexedDB Engine
-            const DB_NAME = 'DashboardBgDB';
-            const DB_VERSION = 1;
-            const STORE_NAME = 'backgrounds';
-            let bgDB;
-
-            function initBgDB() {
-                return new Promise((resolve, reject) => {
-                    const req = indexedDB.open(DB_NAME, DB_VERSION);
-                    req.onupgradeneeded = (e) => {
-                        bgDB = e.target.result;
-                        if (!bgDB.objectStoreNames.contains(STORE_NAME)) {
-                            bgDB.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                        }
-                    };
-                    req.onsuccess = (e) => {
-                        bgDB = e.target.result;
-                        resolve();
-                    };
-                    req.onerror = (e) => reject(req.error);
-                });
-            }
-
-            function saveBgToDB(id, dataUrl) {
-                return new Promise((resolve, reject) => {
-                    const tx = bgDB.transaction(STORE_NAME, 'readwrite');
-                    tx.objectStore(STORE_NAME).put({ id, dataUrl, timestamp: Date.now() });
-                    tx.oncomplete = () => resolve();
-                    tx.onerror = () => reject(tx.error);
-                });
-            }
-
-            function getBgFromDB(id) {
-                return new Promise((resolve, reject) => {
-                    const tx = bgDB.transaction(STORE_NAME, 'readonly');
-                    const req = tx.objectStore(STORE_NAME).get(id);
-                    req.onsuccess = () => resolve(req.result ? req.result.dataUrl : null);
-                    req.onerror = () => reject(req.error);
-                });
-            }
-
-            function getAllBgsFromDB() {
-                return new Promise((resolve, reject) => {
-                    const tx = bgDB.transaction(STORE_NAME, 'readonly');
-                    const req = tx.objectStore(STORE_NAME).getAll();
-                    req.onsuccess = () => resolve(req.result || []);
-                    req.onerror = () => reject(req.error);
-                });
-            }
-
-            function deleteBgFromDB(id) {
-                return new Promise((resolve, reject) => {
-                    const tx = bgDB.transaction(STORE_NAME, 'readwrite');
-                    tx.objectStore(STORE_NAME).delete(id);
-                    tx.oncomplete = () => resolve();
-                    tx.onerror = () => reject(tx.error);
-                });
-            }
 
             function applyBgImage(url) {
                 if (url) {
@@ -2049,7 +1998,8 @@
                     mainContent.style.backgroundSize = '';
                     mainContent.style.backgroundPosition = '';
                     mainContent.style.backgroundAttachment = '';
-                    const color = localStorage.getItem('dashboard-bgcolor') || (document.documentElement.classList.contains('dark') ? '#111827' : '#f3f4f6');
+                    // Fall back to server's solid color, or default
+                    const color = mainContent.style.backgroundColor || (document.documentElement.classList.contains('dark') ? '#111827' : '#f3f4f6');
                     document.documentElement.style.setProperty('--bg-color', color);
                     document.querySelectorAll('.group-header').forEach(el => el.style.backgroundColor = color);
                 }
@@ -2059,24 +2009,35 @@
                 const color = e.target.value;
                 mainContent.style.backgroundColor = color;
                 document.documentElement.style.setProperty('--bg-color', color);
-                localStorage.setItem('dashboard-bgcolor', color);
                 document.querySelectorAll('.group-header').forEach(el => el.style.backgroundColor = color);
+                
+                // Save to server
+                if (appState.currentToken) {
+                    appState.activeBackgroundId = null; // Clear image active state
+                    applyBgImage(null); // Clear image to show solid color
+                    renderBgGallery(); // Update visual state if Gallery open
+                    
+                    apiFetch('/api/users/settings', { 
+                        method: 'PUT', 
+                        body: { activeBackgroundColor: color, activeBackgroundId: null } 
+                    }).catch(console.error);
+                }
             }
 
             async function renderBgGallery() {
                 bgGalleryGrid.innerHTML = '<div class="col-span-12 text-center text-gray-500 py-8"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></div>';
                 try {
-                    const bgs = await getAllBgsFromDB();
+                    const bgs = await apiFetch('/api/backgrounds');
                     bgGalleryGrid.innerHTML = '';
+                    
                     if (bgs.length === 0) {
                         bgGalleryGrid.innerHTML = '<div class="col-span-12 text-center text-gray-500 py-8 text-sm">No uploaded backgrounds yet. Click "Upload" above!</div>';
                         return;
                     }
                     
-                    const activeId = localStorage.getItem('dashboard-active-bg-id');
+                    const activeId = appState.activeBackgroundId;
 
-                    // Sort descending by timestamp
-                    bgs.sort((a,b) => b.timestamp - a.timestamp).forEach(bg => {
+                    bgs.forEach(bg => {
                         const tile = document.createElement('div');
                         const isActive = activeId === bg.id;
                         tile.className = `relative aspect-video rounded-lg shadow-sm border-2 overflow-hidden group cursor-pointer transition-transform hover:scale-105 ${isActive ? 'border-blue-500 scale-105 shadow-md' : 'border-black/10 dark:border-white/10'}`;
@@ -2090,10 +2051,15 @@
                         `;
 
                         // Activate background on click
-                        tile.addEventListener('click', () => {
-                            localStorage.setItem('dashboard-active-bg-id', bg.id);
+                        tile.addEventListener('click', async () => {
+                            appState.activeBackgroundId = bg.id;
                             applyBgImage(bg.dataUrl);
                             renderBgGallery(); // update active outline visual
+                            
+                            await apiFetch('/api/users/settings', { 
+                                method: 'PUT', 
+                                body: { activeBackgroundId: bg.id, activeBackgroundColor: null } 
+                            }).catch(console.error);
                         });
 
                         // Delete button
@@ -2101,12 +2067,17 @@
                         deleteBtn.addEventListener('click', async (evt) => {
                             evt.stopPropagation();
                             if(confirm("Delete this background?")) {
-                                await deleteBgFromDB(bg.id);
-                                if (activeId === bg.id) {
-                                    localStorage.removeItem('dashboard-active-bg-id');
-                                    applyBgImage(null);
+                                try {
+                                    await apiFetch(`/api/backgrounds/${bg.id}`, { method: 'DELETE' });
+                                    if (activeId === bg.id) {
+                                        appState.activeBackgroundId = null;
+                                        applyBgImage(null);
+                                        await apiFetch('/api/users/settings', { method: 'PUT', body: { activeBackgroundId: null, activeBackgroundColor: null } }).catch(console.error);
+                                    }
+                                    renderBgGallery();
+                                } catch(e) {
+                                    alert(e.message);
                                 }
-                                renderBgGallery();
                             }
                         });
 
@@ -2114,7 +2085,7 @@
                     });
 
                 } catch(e) {
-                    bgGalleryGrid.innerHTML = '<div class="col-span-12 text-red-500 text-center py-4 text-sm">Error reading database.</div>';
+                    bgGalleryGrid.innerHTML = '<div class="col-span-12 text-red-500 text-center py-4 text-sm">Error reading server gallery.</div>';
                 }
             }
 
@@ -2144,16 +2115,21 @@
                     const reader = new FileReader();
                     reader.onload = async (event) => {
                         const base64Data = event.target.result;
-                        const id = 'bg_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
                         
                         try {
-                            await saveBgToDB(id, base64Data);
-                            localStorage.setItem('dashboard-active-bg-id', id);
+                            const newBg = await apiFetch('/api/backgrounds', { method: 'POST', body: { dataUrl: base64Data } });
+                            appState.activeBackgroundId = newBg.id;
                             applyBgImage(base64Data);
+                            
+                            await apiFetch('/api/users/settings', { 
+                                method: 'PUT', 
+                                body: { activeBackgroundId: newBg.id, activeBackgroundColor: null } 
+                            });
+                            
                             e.target.value = ''; // Reset input
                             renderBgGallery();
                         } catch(err) {
-                            alert("Failed to save image locally. Storage might be full.");
+                            alert("Failed to save image to server. " + err.message);
                         }
                     };
                     reader.readAsDataURL(file);
@@ -2161,34 +2137,39 @@
             }
 
             if (bgGalleryClearBtn) {
-                bgGalleryClearBtn.addEventListener('click', () => {
-                    localStorage.removeItem('dashboard-active-bg-id');
+                bgGalleryClearBtn.addEventListener('click', async () => {
+                    appState.activeBackgroundId = null;
                     applyBgImage(null);
                     renderBgGallery();
+                    
+                    await apiFetch('/api/users/settings', { 
+                        method: 'PUT', 
+                        body: { activeBackgroundId: null, activeBackgroundColor: null } 
+                    }).catch(console.error);
                 });
             }
 
-            function initBgColor() {
-                let color = localStorage.getItem('dashboard-bgcolor');
-                if (!color) {
-                    color = document.documentElement.classList.contains('dark') ? '#111827' : '#f3f4f6';
-                }
+            function initBgColor(settings = {}) {
+                let color = settings.activeBackgroundColor || (document.documentElement.classList.contains('dark') ? '#111827' : '#f3f4f6');
+                
                 mainContent.style.backgroundColor = color;
                 document.documentElement.style.setProperty('--bg-color', color);
                 bgColorPicker.value = color;
                 
-                // Hydrate Background from IndexedDB on load
-                initBgDB().then(async () => {
-                    const activeId = localStorage.getItem('dashboard-active-bg-id');
-                    if (activeId) {
-                        const dataUrl = await getBgFromDB(activeId).catch(()=>null);
-                        applyBgImage(dataUrl);
-                    } else {
-                        applyBgImage(null);
-                    }
-                }).catch(() => {
+                appState.activeBackgroundId = settings.activeBackgroundId || null;
+                
+                if (appState.activeBackgroundId) {
+                    apiFetch('/api/backgrounds').then(bgs => {
+                        const activeBg = bgs.find(b => b.id === appState.activeBackgroundId);
+                        if (activeBg) {
+                            applyBgImage(activeBg.dataUrl);
+                        } else {
+                            applyBgImage(null);
+                        }
+                    }).catch(() => applyBgImage(null));
+                } else {
                     applyBgImage(null);
-                });
+                }
             }
 
             // --- ICON PICKER LOGIC ---
@@ -2430,6 +2411,13 @@
                         if (!data.token) throw new Error('No token received from server.');
                         localStorage.setItem('dashboard-token', data.token);
                         appState.currentToken = data.token;
+                        
+                        // Initialize background with server preferences
+                        initBgColor({
+                            activeBackgroundColor: data.activeBackgroundColor,
+                            activeBackgroundId: data.activeBackgroundId
+                        });
+
                         const name = data.username || username;
                         await showDashboard(name);
                         showToast('Logged in!');

@@ -50,7 +50,7 @@ The codebase has been refactored for modularity:
 - **Dynamic Tile Layouts:** Drag and drop tile interfaces with custom groups and persistent border styling.
 - **Top-Tier Widgets:** A permanent unified dashboard header natively supporting an explicit Calendar grid, a To-Do list with local-storage saving, and a multi-day Weather component powered by the Open-Meteo GEM Geocoding network.
 - **Icon Support:** Built-in dashboard icons picker connected to the immense GitHub community icon networks, easily handling massive Base64 payloads natively through the 10MB NGINX backend intercept.
-- **Local Background Gallery:** Native background image saving connected via IndexedDB.
+- **Server Background Gallery:** Native background image saving stored securely on your server to sync across all your devices.
 
 ## Features
 
