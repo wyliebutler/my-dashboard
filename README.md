@@ -50,10 +50,11 @@ The codebase has been refactored for modularity:
 - **Dynamic Tile Layouts:** Drag and drop tile interfaces with custom groups and persistent border styling.
 - **Top-Tier Widgets:** A permanent unified dashboard header natively supporting an explicit Calendar grid, a To-Do list with local-storage saving, and a multi-day Weather component powered by the Open-Meteo GEM Geocoding network.
 - **Icon Support:** Built-in dashboard icons picker connected to the immense GitHub community icon networks, easily handling massive Base64 payloads natively through the 10MB NGINX backend intercept.
-- **Server Background Gallery:** Native background image saving stored securely on your server to sync across all your devices.
-
-## Features
-
+-### **5. Server Background Gallery**
+Upload, store, and manage custom background images securely on your dashboard's backend. 
+- **Account Syncing**: The currently active background image and solid color fallbacks are synced alongside your tiles so your layout instantly carries over across any computer or browser.
+- **High-Res Uploads**: Supports **up to 50MB** image uploads natively via `nginx.conf` proxy forwarding limits, bypassing standard 1MB web limits.
+- **Base64 JSON Transport**: Backgrounds are transported safely via Base64 encoded JSON over the API, saving files seamlessly into the underlying SQLite database with robust TypeScript (`routes/backgrounds.ts`) validation.
 ### Heartbeat (Service Health Check)
 Click the **Heartbeat icon** (pulse) in the header to check the status of your services.
 -   **Green Dot**: Service is reachable (UP).
