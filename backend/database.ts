@@ -83,14 +83,30 @@ export async function initDb(): Promise<void> {
         db.run("ALTER TABLE tiles ADD COLUMN type TEXT DEFAULT 'link'", () => {});
         db.run("ALTER TABLE tiles ADD COLUMN widgetData TEXT", () => {});
         db.run("ALTER TABLE groups ADD COLUMN borderColor TEXT", () => {});
+        db.run("ALTER TABLE users ADD COLUMN activeBackgroundColor TEXT", () => {});
+        db.run("ALTER TABLE users ADD COLUMN activeBackgroundId INTEGER", () => {});
 
-        db.run('PRAGMA user_version = 1', (err) => {
+        // 5. Create backgrounds table
+        db.run(`CREATE TABLE IF NOT EXISTS backgrounds (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            userId INTEGER NOT NULL,
+            dataUrl TEXT NOT NULL,
+            timestamp INTEGER,
+            FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
+          )`, (err) => {
           if (err) {
-            console.error('Error finalizing tables:', err.message);
+            console.error('Error creating backgrounds table:', err.message);
             return reject(err);
           }
-          console.log('Database tables checked/created successfully.');
-          resolve();
+
+          db.run('PRAGMA user_version = 1', (err) => {
+            if (err) {
+              console.error('Error finalizing tables:', err.message);
+              return reject(err);
+            }
+            console.log('Database tables checked/created successfully.');
+            resolve();
+          });
         });
       });
     });

@@ -51,7 +51,13 @@ router.post('/login', (req: Request, res: Response) => {
         if (match) {
             const tokenUser: User = { id: user.id, username: user.username };
             const token = jwt.sign(tokenUser, JWT_SECRET, { expiresIn: '1d' });
-            res.json({ message: 'Login successful', token, username: user.username });
+            res.json({ 
+                message: 'Login successful', 
+                token, 
+                username: user.username,
+                activeBackgroundColor: (user as any).activeBackgroundColor,
+                activeBackgroundId: (user as any).activeBackgroundId
+            });
         } else {
             res.status(401).json({ message: 'Invalid credentials' });
         }
@@ -72,7 +78,12 @@ router.get('/check', authenticateToken, (req: AuthRequest, res: Response) => {
         if (!user) {
             return res.sendStatus(401); // User no longer exists
         }
-        res.json({ message: 'Token is valid', username: req.user?.username });
+        res.json({ 
+            message: 'Token is valid', 
+            username: req.user?.username,
+            activeBackgroundColor: (user as any).activeBackgroundColor,
+            activeBackgroundId: (user as any).activeBackgroundId
+        });
     });
 });
 

@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
-import { initDb } from './database';
+import { initDb, dbRun } from './database';
+import authenticateToken from './middleware/authMiddleware';
 
 import authRouter from './routes/auth';
 import dashboardRouter from './routes/dashboard';
@@ -16,8 +17,8 @@ const port = 3000;
 // Backgrounds path (duplicated from routes/backgrounds.js to serve static files)
 const UPLOAD_DIR = path.join('/app/data', 'backgrounds');
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve static background images
 app.use('/api/backgrounds', express.static(UPLOAD_DIR));
@@ -30,6 +31,16 @@ app.use('/api/groups', groupsRouter);
 app.use('/api/backup', backupRouter);
 app.use('/api/backgrounds', backgroundsRouter);
 app.use('/api/health', healthRouter);
+
+app.put('/api/users/settings', authenticateToken, (req: express.Request, res: express.Response) => {
+  const { activeBackgroundColor, activeBackgroundId } = req.body;
+  const userId = (req as any).user.id;
+  
+  dbRun('UPDATE users SET activeBackgroundColor = ?, activeBackgroundId = ? WHERE id = ?', 
+        [activeBackgroundColor || null, activeBackgroundId || null, userId])
+    .then(() => res.json({ message: 'Settings updated' }))
+    .catch((err: any) => res.status(500).json({ message: 'Error updating settings', error: err.message }));
+});
 
 // Start Server
 async function startServer() {
