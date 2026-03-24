@@ -65,6 +65,35 @@ Click the **Heartbeat icon** (pulse) in the header to check the status of your s
     docker-compose up -d --build
     ```
 
+## Customizing the RSS Feeds
+
+If you want to swap out the default news sources (CNN, VOCM, TechCrunch, CBC) for your own personalized feeds, edit these two specific configuration files:
+
+**Step 1. Add your link to `backend/routes/rss.ts`**
+Open the `rss.ts` file and locate the `FEED_URLS` array (around Line 29). Add your new RSS `url` and give it a short, memorable `source` tag:
+```typescript
+const FEED_URLS = [
+    { url: 'https://vocm.com/feed/', source: 'VOCM' },
+    // Add your feed below!
+    { url: 'https://sports.yahoo.com/rss/', source: 'SPORTS' } 
+];
+```
+
+**Step 2. Set the Round-Robin sorting order (`rss.ts`)**
+Scroll down to roughly **Line 74** in the exact same file. Find the `sourceOrder` array and add your `source` tag strictly to the list so the proxy knows your feed exists!
+```typescript
+const sourceOrder = ['VOCM', 'CNN', 'CBC', 'TechCrunch', 'SPORTS'];
+```
+
+**Step 3. Style it with Tailwind (`frontend/app.js`) [Optional]**
+To make your new feed tag pop with a unique color, open `frontend/app.js` and locate the `fetchAndRenderRSS()` function (around **Line 629**). Add a simple javascript `if` check assigning it any text color class:
+```javascript
+if (item.source === 'SPORTS') sourceColor = 'text-green-500 dark:text-green-400';
+```
+Finally, rebuild your docker container `docker compose up -d --build` to see your new scrolling news!
+
+## Windows Tile Workaround
+
 If you want to create tiles for your windows apps you can use this work-a-round.  Here are the steps.
 
 1.  Create a folder to hold your launcher.bat file you will create.  The file contents will look like this:
