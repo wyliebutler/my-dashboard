@@ -32,8 +32,8 @@ services:
       - ./data:/app/data
     environment:
       # We'll use this later in the backend code for signing security tokens.
-      # You can change "YOUR_SUPER_SECRET_KEY" to any random string.
-      JWT_SECRET: "YOUR_SUPER_SECRET_KEYRGRGGDG"
+      # You can change "YOUR_SUPER_SECRET_KEY" to any random string in your .env file.
+      JWT_SECRET: ${JWT_SECRET:-please_change_this_secret_key}
       
     # Note: We don't expose any ports for the backend *to the host*
     # (like 51.79.55.125). The 'frontend' service will talk to the
