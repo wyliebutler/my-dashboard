@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en" class="dark"> <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    
+    <script>
+        // Set theme from localStorage before page renders
+        if (localStorage.theme === 'light' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+            document.documentElement.classList.remove('dark');
+        } else {
+            document.documentElement.classList.add('dark');
+        }
+        
+        // Configure Tailwind for dark mode
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar { width: 0; background: transparent; }
+        body { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Drag-and-drop styles */
+        .sortable-ghost {
+            opacity: 0.4;
+            @apply bg-gray-300 dark:bg-gray-700;
+        }
+        .sortable-drag {
+            opacity: 1;
+        }
+        
+        /* Style for when dragging a tile over a group tab */
+        .group-tab.sortable-ghost {
+            @apply bg-blue-600 text-white;
+        }
+        
+        /* Style for the group management list items */
+        .group-list-item {
+             @apply flex items-center justify-between p-3 bg-gray-200 dark:bg-gray-700 rounded-lg mb-2;
+        }
+        .group-list-item .drag-handle {
+            @apply cursor-move text-gray-500 dark:text-gray-400 mr-3;
+        }
+        
+        /* Custom styles for theme toggle switch */
+        .toggle-checkbox:checked {
+            @apply bg-blue-600;
+            right: 0;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            @apply bg-blue-600;
+        }
+
+        /* Style for the new color picker */
+        #bg-color-picker {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 2rem; /* w-8 */
+            height: 2rem; /* h-8 */
+            padding: 0;
+            border: none;
+            border-radius: 0.5rem; /* rounded-lg */
+            cursor: pointer;
+            background-color: transparent;
+            /* Add a subtle border to make it visible */
+            @apply border border-gray-300 dark:border-gray-600;
+        }
+        #bg-color-picker::-webkit-color-swatch-wrapper {
+            padding: 0;
+            border-radius: 0.5rem;
+        }
+        #bg-color-picker::-webkit-color-swatch {
+            border: none;
+            border-radius: 0.5rem;
+        }
+        #bg-color-picker::-moz-color-swatch {
+            border: none;
+            border-radius: 0.5rem;
+        }
+
+        /* --- NEW RULE FOR GROUP HEADERS IN "ALL" VIEW --- */
+        .group-section {
+            @apply border border-gray-300 dark:border-gray-700 rounded-xl p-3 md:p-5 relative pt-8 md:pt-10;
+        }
+        .group-header {
+            @apply absolute -top-3 left-4 md:left-6 px-3 bg-gray-100 dark:bg-gray-900 font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider text-xs;
+        }
+        .widget-weather { @apply w-full md:w-64 h-20 md:h-20; }
+        .widget-calendar { @apply w-full md:w-72 h-auto min-h-[11rem]; }
+        
+        /* --- NEW RULES FOR PRETTY SCROLLBARS --- */
+        /* This targets the scrollable areas in your modals */
+        #icon-picker-grid::-webkit-scrollbar,
+        #group-manage-list::-webkit-scrollbar,
+        #todo-list::-webkit-scrollbar {
+            @apply w-2;
+        }
+        #icon-picker-grid::-webkit-scrollbar-track,
+        #group-manage-list::-webkit-scrollbar-track,
+        #todo-list::-webkit-scrollbar-track {
+            @apply bg-gray-200 dark:bg-gray-700 rounded-lg;
+        }
+        #icon-picker-grid::-webkit-scrollbar-thumb,
+        #group-manage-list::-webkit-scrollbar-thumb,
+        #todo-list::-webkit-scrollbar-thumb {
+            @apply bg-gray-400 dark:bg-gray-500 rounded-lg;
+        }
+        #icon-picker-grid::-webkit-scrollbar-thumb:hover,
+        #group-manage-list::-webkit-scrollbar-thumb:hover,
+        #todo-list::-webkit-scrollbar-thumb:hover {
+            @apply bg-gray-500 dark:bg-gray-400;
+        }
+
+        /* --- UNIFIED TICKER MARQUEE --- */
+        #unified-ticker-container {
+            display: flex;
+            white-space: nowrap;
+        }
+        #unified-ticker-content {
+            display: inline-block;
+            animation: scroll-left 100s linear infinite;
+        }
+        #unified-ticker-content:hover {
+            animation-play-state: paused;
+        }
+        @keyframes scroll-left {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .ticker-item {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 2.5rem;
+            font-family: monospace;
+            font-weight: 500;
+        }
+        .ticker-label {
+            color: #9ca3af;
+            margin-right: 0.5rem;
+        }
+        .ticker-value {
+            color: #f3f4f6;
+            margin-right: 0.5rem;
+        }
+        .ticker-change.positive { color: #4ade80; }
+        .ticker-change.negative { color: #f87171; }
+    </style>
+</head>
+<body class="text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
+
+    <div id="app-container" class="flex flex-col min-h-screen">
+        
+        <header id="app-header" class="bg-white/20 dark:bg-black/20 backdrop-blur-sm border-b border-gray-200/20 dark:border-gray-700/50 shadow-lg py-2 px-4 flex justify-between items-center hidden sticky top-0 z-40">
+            <h1 class="text-lg md:text-xl font-bold dark:text-white text-gray-900 drop-shadow-md">My Dashboard</h1>
+            
+            <div class="relative w-1/3 hidden md:block">
+                <input id="search-input" type="text" placeholder="Search apps..." class="bg-black/5 dark:bg-white/5 backdrop-blur-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 w-full px-4 py-1.5 rounded-lg border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <i class="fa-solid fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm"></i>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-sun text-gray-500"></i>
+                    <label for="theme-toggle" class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="theme-toggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-300 dark:bg-gray-700 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
+                        <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-full"></span>
+                    </label>
+                    <i class="fa-solid fa-moon text-gray-400"></i>
+                </div>
+
+                <div class="flex items-center space-x-2 mr-2">
+                    <label for="bg-color-picker" class="sr-only">Background Color</label>
+                    <input type="color" id="bg-color-picker" title="Change Background Color" value="#e5e7eb" class="w-6 h-6 rounded shrink-0 cursor-pointer border border-gray-300 dark:border-gray-600">
+                    <button id="bg-gallery-btn" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold py-1 px-2.5 rounded-lg flex items-center transition-colors text-xs" title="Select Background Image">
+                        <i class="fa-solid fa-image mr-1"></i> BGs
+                    </button>
+                </div>
+
+                <span id="welcome-user" class="hidden md:block whitespace-nowrap text-sm"></span>
+                <div class="flex items-center space-x-2 border-l border-gray-300 dark:border-gray-700 pl-2 ml-2 border-r pr-2 mr-2">
+                    <button id="export-dashboard-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-2.5 rounded-lg flex items-center transition-colors text-sm" title="Export Dashboard">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
+                    <button id="import-dashboard-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-2.5 rounded-lg flex items-center transition-colors text-sm" title="Import Dashboard">
+                        <i class="fa-solid fa-file-import"></i>
+                    </button>
+                    <input type="file" id="import-file-input" accept=".json" class="hidden">
+                </div>
+                <button id="add-tile-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-lg flex items-center space-x-2 text-sm">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="hidden sm:inline">Add</span>
+                </button>
+                <button id="logout-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-3 rounded-lg text-sm">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="p-4 bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 md:hidden hidden" id="mobile-search-wrapper">
+             <div class="relative w-full">
+                <input id="mobile-search-input" type="text" placeholder="Search apps..." class="bg-black/5 dark:bg-white/5 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 w-full px-4 py-2 rounded-lg border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <i class="fa-solid fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+            </div>
+        </div>
+        
+        <nav id="group-tab-bar" class="bg-white/20 dark:bg-black/20 backdrop-blur-sm border-b border-gray-200/20 dark:border-gray-700/50 shadow-sm hidden sticky top-[52px] z-40">
+            <div class="flex items-center space-x-2 py-1.5 px-3 overflow-x-auto text-sm">
+                <div id="group-tab-list" class="flex space-x-2 text-sm">
+                    </div>
+                <button id="manage-groups-btn" class="ml-auto flex-shrink-0 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10 text-gray-700 dark:text-gray-200 font-bold py-1 px-3 rounded-lg transition-colors text-sm">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+            </div>
+        </nav>
+
+
+        <main id="main-content" class="flex-1 p-4 md:p-8 bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+            
+            <div id="auth-screen" class="max-w-md mx-auto mt-10 md:mt-20">
+                <div class="bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-8">
+                    <h2 id="auth-title" class="text-3xl font-bold text-center mb-6">Login</h2>
+                    <p id="auth-error" class="text-red-500 dark:text-red-400 text-center mb-4 hidden"></p>
+                    
+                    <form id="auth-form">
+                        <div class="mb-4">
+                            <label for="username" class="block text-sm font-bold mb-2">Username</label>
+                            <input type="text" id="username" class="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="password" class="block text-sm font-bold mb-2">Password</label>
+                            <input type="password" id="password" class="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <button id="auth-submit-btn" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                            Login
+                        </button>
+                    </form>
+                    
+                    <p class="text-center text-gray-500 dark:text-gray-400 mt-6">
+                        <span id="auth-toggle-text">Don't have an account?</span>
+                        <button id="auth-toggle-btn" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 font-bold ml-1">Sign Up</button>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Persistent Top Widgets -->
+            <div id="top-widgets-row" class="hidden flex-col gap-2 md:gap-3 mb-3 md:mb-4">
+                
+                <!-- Unified Ticker -->
+                <div id="unified-ticker-container" class="w-full bg-black/40 backdrop-blur-sm border border-white/20 h-8 flex items-center relative overflow-hidden rounded-xl shadow-md">
+                    <div id="unified-ticker-content" class="whitespace-nowrap text-xs pl-3 inline-flex shrink-0 w-max items-center">
+                        <span class="text-gray-400 px-3 drop-shadow-md">Initializing Monitor...</span>
+                    </div>
+                </div>
+
+                <!-- Unified Tier: Calendar, To-Do, Weather, RSS -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
+                    <!-- Calendar Widget (Spans 1 col) -->
+                    <div class="bg-white/60 dark:bg-black/40 backdrop-blur-sm p-1.5 sm:p-2 rounded-xl shadow-lg flex flex-col relative border border-white/30 dark:border-white/10 md:col-span-1">
+                        <div class="flex items-center justify-between text-gray-500 text-[10px] md:text-xs uppercase font-bold tracking-widest mb-1 sm:mb-1 group">
+                            <button id="cal-prev" class="hover:text-blue-500 transition-colors px-1"><i class="fa-solid fa-chevron-left text-[10px] md:text-xs"></i></button>
+                            <span id="static-month" class="text-xs text-gray-800 dark:text-white font-bold">Month Year</span>
+                            <div class="flex space-x-1 items-center">
+                                <button id="cal-config" class="text-gray-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity px-1"><i class="fa-solid fa-gear text-[10px] md:text-xs"></i></button>
+                                <button id="cal-next" class="hover:text-blue-500 transition-colors px-1"><i class="fa-solid fa-chevron-right text-[10px] md:text-xs"></i></button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-0 text-center font-bold text-[8px] text-gray-400 mb-0.5">
+                            <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+                        </div>
+                        <div id="static-cal-grid" class="grid grid-cols-7 gap-0.5 flex-1 text-center text-[10px] text-gray-700 dark:text-gray-300">
+                            <!-- JS fills days -->
+                        </div>
+                    </div>
+
+                    <!-- To-Do List Widget (Spans 1 col) -->
+                    <div class="bg-orange-50/60 dark:bg-orange-950/40 backdrop-blur-sm p-1.5 sm:p-2 rounded-xl shadow-lg flex flex-col relative border border-white/30 dark:border-white/10">
+                        <div class="flex items-center justify-between text-gray-500 text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-1">
+                            <span>Tasks</span>
+                            <i class="fa-solid fa-check-square text-gray-400"></i>
+                        </div>
+                        <form id="todo-form" class="flex space-x-1 mb-1">
+                            <input type="text" id="todo-input" placeholder="Add task..." class="flex-1 text-[11px] sm:text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-orange-500" required>
+                            <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white rounded px-2 py-0.5 font-bold text-[11px] sm:text-xs"><i class="fa-solid fa-plus"></i></button>
+                        </form>
+                        <ul id="todo-list" class="flex-1 overflow-y-auto space-y-0.5 md:space-y-1 pr-1 h-20 sm:h-20 text-[11px] sm:text-xs text-gray-700 dark:text-gray-300">
+                            <!-- Dynamic Todos -->
+                        </ul>
+                    </div>
+
+                    <!-- Single Weather Widget -->
+                    <div id="weather-row-container" class="h-full">
+                        <!-- Javascript will inject 1 copy of the Weather Widget template here -->
+                    </div>
+
+                    <!-- Mini RSS News Feed Widget (Spans 1 col) -->
+                    <div class="bg-blue-50/60 dark:bg-blue-950/40 backdrop-blur-sm p-1.5 sm:p-2 rounded-xl shadow-lg flex flex-col relative border border-white/30 dark:border-white/10 md:col-span-1">
+                        <div class="flex items-center justify-between text-gray-500 text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-1 shrink-0">
+                            <span>News</span>
+                            <i class="fa-solid fa-newspaper text-gray-400"></i>
+                        </div>
+                        <ul id="rss-news-list" class="overflow-y-auto space-y-0.5 md:space-y-1 pr-1 max-h-32 md:max-h-40 text-[11px] sm:text-xs">
+                            <li class="text-center text-gray-400 py-2"><i class="fa-solid fa-spinner fa-spin"></i> Loading Feed...</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="tile-container" class="flex flex-wrap gap-3 md:gap-4">
+                </div>
+            
+            <div id="no-results-state" class="text-center py-20 text-gray-500 dark:text-gray-500 hidden">
+                <i class="fa-solid fa-box-open fa-4x mb-4"></i>
+                <h3 class="text-2xl font-semibold">No apps found</h3>
+                <p>Your search for "<span id="no-results-term" class="font-bold"></span>" didn't match any apps.</p>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="tile-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-8 w-full max-w-md">
+            <h2 id="modal-title" class="text-2xl font-bold mb-6">Add New Tile</h2>
+            <p id="modal-error" class="text-red-500 dark:text-red-400 text-center mb-4 hidden"></p>
+            
+            <form id="tile-form">
+                <input type="hidden" id="tile-id">
+                <div class="mb-4 grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="tile-type" class="block text-sm font-bold mb-2">Type</label>
+                        <select id="tile-type" class="bg-gray-200 dark:bg-gray-700 w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="link">Link</option>
+                            <option value="stats">System Monitor</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="tile-borderColor" class="block text-sm font-bold mb-2">Border Color</label>
+                        <div class="flex items-center space-x-2">
+                           <input type="color" id="tile-borderColor" value="#3b82f6" class="w-10 h-10 rounded-lg cursor-pointer">
+                           <label class="text-xs text-gray-500"><input type="checkbox" id="tile-useBorder" class="mr-1"> Use Custom</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="tile-name" class="block text-sm font-bold mb-2">Title / Name</label>
+                    <input type="text" id="tile-name" class="bg-gray-200 dark:bg-gray-700 w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="tile-url" class="block text-sm font-bold mb-2">URL (Leave blank for widgets)</label>
+                    <input type="text" id="tile-url" placeholder="https://example.com" class="bg-gray-200 dark:bg-gray-700 w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="tile-icon" class="block text-sm font-bold mb-2">Icon (FA Class or Image URL)</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="tile-icon" placeholder="fa-solid fa-globe or https://..." class="bg-gray-200 dark:bg-gray-700 w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <button type="button" id="open-icon-picker-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold p-3 rounded-lg flex-shrink-0" title="Pick FA Icon">
+                            <i class="fa-solid fa-icons"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="tile-group" class="block text-sm font-bold mb-2">Group</label>
+                    <select id="tile-group" class="bg-gray-200 dark:bg-gray-700 w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="null">ALL (Uncategorized)</option>
+                        </select>
+                </div>
+
+                <div class="flex justify-end space-x-4 mt-8">
+                    <button id="modal-cancel-btn" type="button" class="bg-gray-500 hover:bg-gray-600 text-white dark:bg-gray-600 dark:hover:bg-gray-700 font-bold py-2 px-6 rounded-lg">
+                        Cancel
+                    </button>
+                    <button id="modal-delete-btn" type="button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg hidden">
+                        Delete
+                    </button>
+                    <button id="modal-submit-btn" type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="icon-picker-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] hidden"> 
+        <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-6 w-full max-w-3xl flex flex-col relative" style="height: 85vh;">
+            <div class="flex justify-between items-center mb-4 shrink-0">
+                <h2 class="text-2xl font-bold">Choose an Icon</h2>
+                <button id="icon-picker-close-btn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="flex border-b border-gray-200 dark:border-gray-700 mb-4 shrink-0 text-gray-800 dark:text-gray-200">
+                <button id="tab-dashboard-icons" class="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600 dark:text-blue-500 dark:border-blue-500" type="button">Dashboard Icons (selfh.st)</button>
+                <button id="tab-fontawesome" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 transition-colors" type="button">FontAwesome</button>
+            </div>
+
+            <div class="relative w-full mb-4 shrink-0">
+                <input id="icon-search-input" type="text" placeholder="Search icons..." class="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off">
+                <i class="fa-solid fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+            </div>
+            
+            <div id="icon-picker-grid" class="flex-1 overflow-y-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 pr-2 content-start min-h-0">
+                 <div class="col-span-full text-center text-gray-500 py-10" id="icon-picker-loading">Loading Dashboard Icons...</div>
+            </div>
+            
+            <div id="icon-picker-fa-help" class="hidden flex-1 overflow-y-auto flex-col p-4 min-h-0 text-center items-center flex-start pt-10">
+                 <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">You can set your icon manually using standard FontAwesome 6 notation (e.g., <code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded">fa-solid fa-server</code>) by typing it above into the icon search box.</p>
+                 <a href="https://fontawesome.com/search?o=r&m=free" target="_blank" class="mt-2 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors mx-auto">Open FontAwesome <i class="fa-solid fa-external-link-alt ml-1 text-xs"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div id="manage-groups-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-8 w-full max-w-md w-11/12 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-6">Manage Groups</h2>
+            
+            <p id="group-modal-error" class="text-red-500 dark:text-red-400 text-center mb-4 hidden"></p>
+            
+            <form id="add-group-form" class="flex space-x-2 mb-6 items-center">
+                <input type="color" id="new-group-color" value="#3b82f6" class="w-10 h-10 rounded-lg cursor-pointer shrink-0" title="Border Color">
+                <input type="text" id="new-group-name" placeholder="New group name" class="bg-gray-200 dark:bg-gray-700 w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">
+                    Add
+                </button>
+            </form>
+            
+            <div id="group-manage-list" class="flex-1 overflow-y-auto pr-2 space-y-2 pb-4">
+                </div>
+            
+            <div class="flex justify-end space-x-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button id="group-modal-close-btn" type="button" class="bg-gray-500 hover:bg-gray-600 text-white dark:bg-gray-600 dark:hover:bg-gray-700 font-bold py-2 px-6 rounded-lg">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white py-3 px-6 rounded-lg shadow-lg opacity-0 transform translate-y-3 transition-all duration-300 z-[70]">
+        <span id="toast-message">Success!</span>
+    </div>
+
+    <!-- Background Gallery Modal -->
+    <div id="bg-gallery-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center p-4">
+        <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/30 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white">Background Gallery</h2>
+                <div class="flex space-x-2">
+                    <button id="bg-gallery-upload-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-lg flex items-center transition-colors text-xs">
+                        <i class="fa-solid fa-upload mr-1"></i> Upload Image
+                    </button>
+                    <button id="bg-gallery-clear-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1.5 px-3 rounded-lg flex items-center transition-colors text-xs" title="Clear Background">
+                        <i class="fa-solid fa-trash mr-1"></i> Remove Active
+                    </button>
+                    <button id="bg-gallery-close-btn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 auto-rows-max" id="bg-gallery-grid">
+                <!-- Visual Thumbnails Generated Here -->
+            </div>
+            <input type="file" id="bg-file-input" accept="image/*" class="hidden">
+        </div>
+    </div>
+
+    <!-- Calendar Settings Modal -->
+    <div id="cal-settings-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-8 w-full max-w-md transform transition-all duration-300 scale-95 origin-bottom relative">
+            <div id="cal-spinner" class="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-2xl flex items-center justify-center hidden z-10">
+                <i class="fa-solid fa-spinner fa-spin text-white text-3xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Calendar Sync</h2>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6">Paste your private "Secret address in iCal format" below.</p>
+            <p id="cal-modal-error" class="text-amber-500 dark:text-amber-400 text-xs text-center mb-4 hidden"></p>
+            
+            <form id="cal-settings-form">
+                <div class="mb-4">
+                    <label for="work-cal-url" class="block text-sm font-bold mb-2 text-blue-600 dark:text-blue-400"><i class="fa-solid fa-briefcase"></i> Work Calendar</label>
+                    <input type="text" id="work-cal-url" placeholder="https://calendar.google.com/calendar/ical/..." class="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </div>
+                <div class="mb-6">
+                    <label for="personal-cal-url" class="block text-sm font-bold mb-2 text-green-600 dark:text-green-400"><i class="fa-solid fa-user"></i> Personal Calendar</label>
+                    <input type="text" id="personal-cal-url" placeholder="https://calendar.google.com/calendar/ical/..." class="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="close-cal-settings" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-bold py-2 px-4 transition duration-300">Cancel</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 shadow">Sync</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script defer src="js/state.js?v=7"></script>
+    <script defer src="js/dom.js?v=7"></script>
+    <script defer src="js/api.js?v=7"></script>
+    <script defer src="js/ui.js?v=7"></script>
+    <script defer src="js/auth.js?v=7"></script>
+    <script defer src="app.js?v=7"></script>
+</body>
+</html>

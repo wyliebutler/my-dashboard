@@ -1,0 +1,80 @@
+import express, { Response } from 'express';
+
+const router = express.Router();
+
+let cachedTickerData: any = null;
+let lastFetchTime = 0;
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
+router.get('/', async (req: express.Request, res: Response) => {
+    const now = Date.now();
+    if (cachedTickerData && (now - lastFetchTime < CACHE_TTL)) {
+        return res.json(cachedTickerData);
+    }
+
+    try {
+        const symbols = ['^GSPC', '^DJI', '^GSPTSE', 'CL=F', 'BZ=F'];
+        
+        // Fetch all symbols via V8 API in parallel
+        const fetchPromises = symbols.map(async (sym) => {
+            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`;
+            const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
+            
+            if (!response.ok) {
+                console.warn(`Yahoo Finance failed for ${sym}: ${response.status}`);
+                return null;
+            }
+            const data = await response.json();
+            if (!data || !data.chart || !data.chart.result || !data.chart.result[0]) return null;
+            
+            const meta = data.chart.result[0].meta;
+            return {
+                symbol: sym,
+                regularMarketPrice: meta.regularMarketPrice,
+                regularMarketChange: meta.regularMarketPrice - meta.chartPreviousClose,
+                currency: meta.currency || 'USD'
+            };
+        });
+
+        const rawResults = await Promise.all(fetchPromises);
+        const results = rawResults.filter(r => r !== null);
+
+        const formattedResults = results
+            .map((item: any) => {
+                let price = item.regularMarketPrice;
+                let change = item.regularMarketChange;
+
+                let displayName = item.symbol;
+                if (item.symbol === '^GSPTSE') displayName = 'TSX';
+                if (item.symbol === '^GSPC') displayName = 'S&P 500';
+                if (item.symbol === '^DJI') displayName = 'DOW';
+                if (item.symbol === 'CL=F') displayName = 'WTI Crude';
+                if (item.symbol === 'BZ=F') displayName = 'Brent Crude';
+
+                // Calculate percent change
+                const previousClose = item.regularMarketPrice - item.regularMarketChange;
+                const percentChange = previousClose !== 0 ? (item.regularMarketChange / previousClose) * 100 : 0;
+
+                return {
+                    symbol: item.symbol,
+                    name: displayName,
+                    price: price,
+                    change: change,
+                    percentChange: percentChange
+                };
+            });
+
+        cachedTickerData = { items: formattedResults, cachedAt: now };
+        lastFetchTime = now;
+
+        res.json(cachedTickerData);
+    } catch (error: any) {
+        console.error('Error fetching ticker data:', error.message);
+        if (cachedTickerData) {
+            return res.json(cachedTickerData);
+        }
+        res.status(500).json({ message: 'Failed to fetch ticker data', error: error.message });
+    }
+});
+
+export default router;
