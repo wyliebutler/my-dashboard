@@ -232,7 +232,8 @@
                             if (evDate.getFullYear() === year && evDate.getMonth() === month) {
                                 const d = evDate.getDate();
                                 if (!eventMap[d]) eventMap[d] = [];
-                                eventMap[d].push({ type: ev.type, title: ev.title });
+                                const timeStr = evDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                                eventMap[d].push({ type: ev.type, title: ev.title, time: timeStr });
                             }
                         });
                     }
@@ -255,7 +256,7 @@
                         if (eventMap[d] && eventMap[d].length > 0) {
                             const hasWork = eventMap[d].some(e => e.type === 'work');
                             const hasPersonal = eventMap[d].some(e => e.type === 'personal');
-                            tooltipText = eventMap[d].map(e => (e.type === 'work' ? '[Work] ' : '[Pers] ') + e.title).join('&#10;');
+                            tooltipText = eventMap[d].map(e => `${e.type === 'work' ? '[Work] ' : '[Pers] '}${e.time} - ${e.title}`).join('&#10;');
                             
                             dotHTML = `<div class="flex space-x-[2px] absolute bottom-0.5 md:bottom-1">`;
                             if (hasWork) dotHTML += `<div class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-blue-400 shadow-sm"></div>`;
