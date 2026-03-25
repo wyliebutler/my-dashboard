@@ -128,7 +128,7 @@
                 }
                 
                 const header = document.createElement('h2');
-                header.className = 'group-header bg-gray-100 dark:bg-gray-900';
+                header.className = 'group-header bg-gray-100 dark:bg-gray-800';
                 // Dynamically apply background color to hide the border behind text
                 const currentBg = document.documentElement.style.getPropertyValue('--bg-color') || (document.documentElement.classList.contains('dark') ? '#111827' : '#f3f4f6');
                 header.style.backgroundColor = currentBg;

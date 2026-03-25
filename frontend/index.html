@@ -90,7 +90,7 @@
             @apply border border-gray-300 dark:border-gray-700 rounded-xl p-3 md:p-5 relative pt-8 md:pt-10;
         }
         .group-header {
-            @apply absolute -top-3 left-4 md:left-6 px-3 bg-gray-100 dark:bg-gray-900 font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider text-xs;
+            @apply absolute -top-3 left-4 md:left-6 px-3 bg-gray-100 dark:bg-gray-800 font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider text-xs;
         }
         .widget-weather { @apply w-full md:w-64 h-20 md:h-20; }
         .widget-calendar { @apply w-full md:w-72 h-auto min-h-[11rem]; }
@@ -204,7 +204,7 @@
             </div>
         </header>
 
-        <div class="p-4 bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 md:hidden hidden" id="mobile-search-wrapper">
+        <div class="p-4 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 md:hidden hidden" id="mobile-search-wrapper">
              <div class="relative w-full">
                 <input id="mobile-search-input" type="text" placeholder="Search apps..." class="bg-black/5 dark:bg-white/5 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 w-full px-4 py-2 rounded-lg border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <i class="fa-solid fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
@@ -222,10 +222,10 @@
         </nav>
 
 
-        <main id="main-content" class="flex-1 p-4 md:px-8 md:pt-4 md:pb-8 bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+        <main id="main-content" class="flex-1 p-4 md:px-8 md:pt-4 md:pb-8 bg-gray-100 dark:bg-gray-800 transition-colors duration-300">
             
             <div id="auth-screen" class="max-w-md mx-auto mt-10 md:mt-20">
-                <div class="bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-8">
+                <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-8">
                     <h2 id="auth-title" class="text-3xl font-bold text-center mb-6">Login</h2>
                     <p id="auth-error" class="text-red-500 dark:text-red-400 text-center mb-4 hidden"></p>
                     
@@ -327,7 +327,7 @@
     </div>
 
     <div id="tile-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-8 w-full max-w-md">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-8 w-full max-w-md">
             <h2 id="modal-title" class="text-2xl font-bold mb-6">Add New Tile</h2>
             <p id="modal-error" class="text-red-500 dark:text-red-400 text-center mb-4 hidden"></p>
             
@@ -391,7 +391,7 @@
     </div>
     
     <div id="icon-picker-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] hidden"> 
-        <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-6 w-full max-w-3xl flex flex-col relative" style="height: 85vh;">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-6 w-full max-w-3xl flex flex-col relative" style="height: 85vh;">
             <div class="flex justify-between items-center mb-4 shrink-0">
                 <h2 class="text-2xl font-bold">Choose an Icon</h2>
                 <button id="icon-picker-close-btn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
@@ -421,7 +421,7 @@
     </div>
     
     <div id="manage-groups-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-8 w-full max-w-md w-11/12 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-8 w-full max-w-md w-11/12 max-h-[90vh] overflow-y-auto">
             <h2 class="text-2xl font-bold mb-6">Manage Groups</h2>
             
             <p id="group-modal-error" class="text-red-500 dark:text-red-400 text-center mb-4 hidden"></p>
@@ -451,7 +451,7 @@
 
     <!-- Background Gallery Modal -->
     <div id="bg-gallery-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center p-4">
-        <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/30 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/30 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col">
             <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 class="text-xl font-bold text-gray-800 dark:text-white">Background Gallery</h2>
                 <div class="flex space-x-2">
@@ -475,7 +475,7 @@
 
     <!-- Calendar Settings Modal -->
     <div id="cal-settings-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-8 w-full max-w-md transform transition-all duration-300 scale-95 origin-bottom relative">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-2xl rounded-2xl p-8 w-full max-w-md transform transition-all duration-300 scale-95 origin-bottom relative">
             <div id="cal-spinner" class="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-2xl flex items-center justify-center hidden z-10">
                 <i class="fa-solid fa-spinner fa-spin text-white text-3xl"></i>
             </div>
