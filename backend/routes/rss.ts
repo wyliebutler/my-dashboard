@@ -58,7 +58,10 @@ router.get('/', async (req, res) => {
         const groupedBySource: Record<string, any[]> = {};
         for (const item of allItems) {
             if (!groupedBySource[item.source]) groupedBySource[item.source] = [];
-            groupedBySource[item.source].push(item);
+            // Deduplicate by title
+            if (!groupedBySource[item.source].some(existing => existing.title === item.title)) {
+                groupedBySource[item.source].push(item);
+            }
         }
 
         // Sort internally by date (newest first)
