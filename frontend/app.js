@@ -628,7 +628,7 @@
                         rssArray.forEach(item => {
                             let sourceColor = 'text-gray-500';
                             if (item.source === 'VOCM') sourceColor = 'text-yellow-500 dark:text-yellow-400';
-                            else if (item.source === 'CNN') sourceColor = 'text-red-600 dark:text-red-500';
+                            else if (item.source === 'BBC') sourceColor = 'text-red-600 dark:text-red-500';
                             else if (item.source === 'CBC') sourceColor = 'text-blue-600 dark:text-blue-400';
                             else if (item.source === 'TechCrunch') sourceColor = 'text-green-600 dark:text-green-500';
 

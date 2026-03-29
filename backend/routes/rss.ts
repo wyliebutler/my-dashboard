@@ -9,7 +9,7 @@ const parser = new Parser({
 });
 
 const FEED_URLS = [
-    { name: 'CNN', url: 'http://rss.cnn.com/rss/cnn_topstories.rss' },
+    { name: 'BBC', url: 'http://feeds.bbci.co.uk/news/rss.xml' },
     { name: 'CBC', url: 'https://www.cbc.ca/cmlink/rss-topstories' },
     { name: 'VOCM', url: 'https://vocm.com/feed/' },
     { name: 'TechCrunch', url: 'https://techcrunch.com/feed/' }
@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
 
         const FEED_URLS = [
             { url: 'https://vocm.com/feed/', source: 'VOCM' },
-            { url: 'http://rss.cnn.com/rss/cnn_topstories.rss', source: 'CNN' },
+            { url: 'http://feeds.bbci.co.uk/news/rss.xml', source: 'BBC' },
             { url: 'https://www.cbc.ca/cmlink/rss-topstories', source: 'CBC' },
             { url: 'https://techcrunch.com/feed/', source: 'TechCrunch' }
         ];
@@ -71,7 +71,7 @@ router.get('/', async (req, res) => {
         }
 
         // Interleave feeds (Round-Robin) in user-requested order
-        const sourceOrder = ['VOCM', 'CNN', 'CBC', 'TechCrunch'];
+        const sourceOrder = ['VOCM', 'BBC', 'CBC', 'TechCrunch'];
         const mixedItems: any[] = [];
         
         // Take up to 5 articles from each source

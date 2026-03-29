@@ -9,4 +9,3 @@ echo Extracting and rebuilding Docker containers...
 ssh ubuntu@51.79.55.125 "cd /home/ubuntu/docker/my-dashboard && tar -xf deploy.tar && docker compose up -d --build"
 
 echo Deployment Complete!
-pause
