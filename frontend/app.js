@@ -121,7 +121,7 @@
                             html += `
                                 <span class="ticker-item">
                                     <span class="ticker-label">${item.name}</span>
-                                    <span class="ticker-value">$${item.price.toFixed(2)}</span>
+                                    <span class="ticker-value">$${item.price.toFixed(2)}${item.currency ? ' ' + item.currency : ''}</span>
                                     <span class="ticker-change ${colorClass}">
                                         <i class="fa-solid ${icon} mr-1"></i>${sign}${item.change.toFixed(2)} (${sign}${item.percentChange.toFixed(2)}%)
                                     </span>

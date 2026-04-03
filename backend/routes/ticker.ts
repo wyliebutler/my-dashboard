@@ -13,10 +13,10 @@ router.get('/', async (req: express.Request, res: Response) => {
     }
 
     try {
-        const symbols = ['^GSPC', '^DJI', '^GSPTSE', 'CL=F', 'BZ=F'];
+        const yfSymbols = ['^GSPC', '^DJI', '^GSPTSE'];
         
-        // Fetch all symbols via V8 API in parallel
-        const fetchPromises = symbols.map(async (sym) => {
+        // Fetch Yahoo Finance symbols
+        const yfPromises = yfSymbols.map(async (sym) => {
             const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`;
             const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
             
@@ -36,7 +36,35 @@ router.get('/', async (req: express.Request, res: Response) => {
             };
         });
 
-        const rawResults = await Promise.all(fetchPromises);
+        // Fetch Commodities from CNBC (Yahoo Finance CL=F feed is bugged/delayed)
+        const cnbcPromise = (async () => {
+             try {
+                 const url = `https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=@CL.1%7C@LCO.1&requestMethod=itv&noform=1&fund=1&exthrs=1&output=json&events=1`;
+                 const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
+                 if (!response.ok) return [];
+                 const data = await response.json();
+                 const quotes = data.FormattedQuoteResult?.FormattedQuote || [];
+                 return quotes.map((q: any) => {
+                     let sym = q.symbol;
+                     if (sym === '@CL.1') sym = 'CL=F'; // Keep original symbol IDs mapped
+                     if (sym === '@LCO.1') sym = 'BZ=F';
+                     
+                     return {
+                         symbol: sym,
+                         regularMarketPrice: parseFloat(q.last),
+                         regularMarketChange: parseFloat(q.change),
+                         currency: 'USD' // Commodities generally trade globally in USD
+                     };
+                 });
+             } catch (e) {
+                 console.error("CNBC Fetch Error", e);
+                 return [];
+             }
+        })();
+
+        const yfRawResults = await Promise.all(yfPromises);
+        const cnbcRawResults = await cnbcPromise;
+        const rawResults = [...yfRawResults, ...cnbcRawResults];
         const results = rawResults.filter(r => r !== null);
 
         const formattedResults = results
@@ -60,7 +88,8 @@ router.get('/', async (req: express.Request, res: Response) => {
                     name: displayName,
                     price: price,
                     change: change,
-                    percentChange: percentChange
+                    percentChange: percentChange,
+                    currency: item.currency
                 };
             });
 

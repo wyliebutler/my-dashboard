@@ -1,0 +1,28 @@
+services:
+  frontend:
+    build: ./frontend
+    container_name: dashboard_frontend
+    ports:
+      - "4446:80"
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    container_name: dashboard_backend
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+    environment:
+      # This is the new line for security
+      # Change 'YOUR_REALLY_STRONG_SECRET_KEY_HERE' to your actual secret
+      - JWT_SECRET=YOUR_REALLY_STRONG_SECRET_KEY_HERE
+    # We no longer expose the port directly to the host
+    # ports:
+    #   - "3000:3000"
+
+volumes:
+  data:
+    # This volume is now managed by the bind mount './data'
+    # but we leave the top-level 'volumes' key for clarity
