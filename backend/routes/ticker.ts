@@ -43,7 +43,9 @@ router.get('/', async (req: express.Request, res: Response) => {
                  const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
                  if (!response.ok) return [];
                  const data = await response.json();
-                 const quotes = data.FormattedQuoteResult?.FormattedQuote || [];
+                 let quotes = data.FormattedQuoteResult?.FormattedQuote || [];
+                 if (!Array.isArray(quotes)) quotes = [quotes];
+                 
                  return quotes.map((q: any) => {
                      let sym = q.symbol;
                      if (sym === '@CL.1') sym = 'CL=F'; // Keep original symbol IDs mapped
@@ -81,14 +83,17 @@ router.get('/', async (req: express.Request, res: Response) => {
 
                 // Calculate percent change
                 const previousClose = item.regularMarketPrice - item.regularMarketChange;
-                const percentChange = previousClose !== 0 ? (item.regularMarketChange / previousClose) * 100 : 0;
+                let percentChange = previousClose !== 0 && !isNaN(previousClose) ? (item.regularMarketChange / previousClose) * 100 : 0;
+                
+                let safeChange = isNaN(item.regularMarketChange) ? 0 : item.regularMarketChange;
+                let safePercentChange = isNaN(percentChange) ? 0 : percentChange;
 
                 return {
                     symbol: item.symbol,
                     name: displayName,
                     price: price,
-                    change: change,
-                    percentChange: percentChange,
+                    change: safeChange,
+                    percentChange: safePercentChange,
                     currency: item.currency
                 };
             });

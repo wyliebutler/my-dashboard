@@ -114,16 +114,19 @@
                     // Add Ticker Stats
                     if (tick && tick.items) {
                         tick.items.forEach(item => {
-                            const isPos = item.change >= 0;
+                            const changeValue = item.change == null ? 0 : item.change;
+                            const percentValue = item.percentChange == null ? 0 : item.percentChange;
+                            
+                            const isPos = changeValue >= 0;
                             const sign = isPos ? '+' : '';
                             const colorClass = isPos ? 'positive' : 'negative';
                             const icon = isPos ? 'fa-caret-up' : 'fa-caret-down';
                             html += `
                                 <span class="ticker-item">
                                     <span class="ticker-label">${item.name}</span>
-                                    <span class="ticker-value">$${item.price.toFixed(2)}${item.currency ? ' ' + item.currency : ''}</span>
+                                    <span class="ticker-value">$${item.price == null ? '--' : item.price.toFixed(2)}${item.currency ? ' ' + item.currency : ''}</span>
                                     <span class="ticker-change ${colorClass}">
-                                        <i class="fa-solid ${icon} mr-1"></i>${sign}${item.change.toFixed(2)} (${sign}${item.percentChange.toFixed(2)}%)
+                                        <i class="fa-solid ${icon} mr-1"></i>${sign}${changeValue.toFixed(2)} (${sign}${percentValue.toFixed(2)}%)
                                     </span>
                                 </span>
                             `;
@@ -131,12 +134,20 @@
                     }
 
                     const tickerContent = document.getElementById('unified-ticker-content');
-                    if (tickerContent && html) {
-                        // Repeat enough times to fill standard 4k screens fully for smooth CSS translation
-                        tickerContent.innerHTML = html.repeat(6); 
+                    if (tickerContent) {
+                        if (html !== '') {
+                            // Repeat enough times to fill standard 4k screens fully for smooth CSS translation
+                            tickerContent.innerHTML = html.repeat(6);
+                        } else {
+                            tickerContent.innerHTML = '<span class="text-gray-400 px-3 drop-shadow-md">Data Unavailable</span>';
+                        }
                     }
                 } catch (err) {
                     console.error('Ticker fetch error:', err);
+                    const tickerContent = document.getElementById('unified-ticker-content');
+                    if (tickerContent) {
+                        tickerContent.innerHTML = '<span class="text-red-400 px-3 drop-shadow-md text-xs font-bold">Ticker Fetch Error</span>';
+                    }
                 }
             }
 
